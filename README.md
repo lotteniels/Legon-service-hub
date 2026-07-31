@@ -1,4 +1,4 @@
-# Balme Service Optimizer
+# Legon Service Hub
 
 Group project repository. Folder structure is mapped to team pod assignments.
 See `report/individual-contributions.md` for who owns what.
