@@ -1,4 +1,4 @@
-﻿location_Id,name,area,type,coordinates
+﻿locationId,name,area,type,coordinates
 1,Great Hall,Central Campus,lecture_hall,A-1
 2,Jones Quartey Building (JQB) - Ground Floor (Rooms 9-14),Near Main Entrance / IAS,lecture_hall,A-2
 3,"Jones Quartey Building (JQB) - First Floor (Rooms 18,19,22,23)",Near Main Entrance / IAS,lecture_hall,A-3
