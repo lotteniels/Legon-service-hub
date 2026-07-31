@@ -1,0 +1,59 @@
+﻿location_Id,name,area,type,coordinates
+1,Great Hall,Central Campus,lecture_hall,A-1
+2,Jones Quartey Building (JQB) - Ground Floor (Rooms 9-14),Near Main Entrance / IAS,lecture_hall,A-2
+3,"Jones Quartey Building (JQB) - First Floor (Rooms 18,19,22,23)",Near Main Entrance / IAS,lecture_hall,A-3
+4,K.A. Busia Lecture Theatre (KAB),Opposite School of Law,lecture_hall,B-4
+5,Legon Centre for International Affairs and Diplomacy (LECIAD),Behind Earth Science Dept,lecture_hall,B-5
+6,Classic Lecture Room (CLR),Classics & Linguistics Dept,lecture_hall,B-6
+7,FCOS / Home Science Annex,Opposite Chemistry Dept,lecture_hall,C-7
+8,"Top of Bookshop (Rooms E9, E10)","UG Bookshop, near Balme Library",lecture_hall,C-8
+9,"N Block (NB1, NB2, NB3)",Near Political Science/Psychology/Info Studies,lecture_hall,C-9
+10,K. Folson Lecture Room,Behind Political Science Dept,lecture_hall,D-10
+11,Central Cafeteria Lecture Theatre,Central Cafeteria Block,lecture_hall,D-11
+12,Business School Lecture Rooms (UGBS),University of Ghana Business School,lecture_hall,D-12
+13,School of Law Lecture Rooms,School of Law,lecture_hall,E-13
+14,Institute of African Studies Lecture Hall,Kwame Nkrumah Complex,lecture_hall,E-14
+15,College of Humanities Lecture Rooms,College of Humanities Block,lecture_hall,E-15
+16,University of Ghana Computing Systems (UGCS),Computer Science Dept Area,lab,F-16
+17,Chemistry Department Laboratory,Department of Chemistry,lab,F-17
+18,Physics Department Laboratory,Department of Physics,lab,F-18
+19,Biochemistry Laboratory,Department of Biochemistry,lab,F-19
+20,Ecology Laboratory (Centre for Ecological Research),ENRECA Centre,lab,F-20
+21,Computer Engineering Laboratory,Computer Engineering Dept,lab,G-21
+22,School of Pharmacy Laboratory,School of Pharmacy,lab,G-22
+23,School of Nursing and Midwifery Laboratory,School of Nursing and Midwifery,lab,G-23
+24,Department of Geology Laboratory,Department of Geology,lab,G-24
+25,Department of Animal Biology Laboratory,Department of Animal Biology,lab,H-25
+26,Department of Marine and Fisheries Sciences Laboratory,Marine & Fisheries Sciences Dept,lab,H-26
+27,Department of Plant and Environmental Biology Laboratory,Plant & Environmental Biology Dept,lab,H-27
+28,Legon Second (Shuttle Stop),Main Campus Entrance Area,shuttle_stop,I-28
+29,Legon Police Station (Shuttle Stop),Near Main Campus,shuttle_stop,I-29
+30,University Primary Roundabout (Shuttle Stop),Main Campus Roundabout,shuttle_stop,I-30
+31,Okponglo Junction (Shuttle Stop),"Okponglo, adjacent to campus",shuttle_stop,I-31
+32,Banku Junction (Shuttle Stop),Near University of Ghana Stadium,shuttle_stop,I-32
+33,Physical Development and Municipal Services Directorate (PDMSD),Left of Bush Canteen,maintenance_office,J-33
+34,Bush Canteen,Central Campus,connector,J-34
+35,University Square,Opposite Balme Library,connector,J-35
+36,University Avenue Junction,"University Avenue, near Commonwealth Hall",connector,J-36
+37,University of Ghana Stadium,Legon Sports Complex,connector,K-37
+38,University of Ghana Medical Centre,Legon Campus,connector,K-38
+39,Central Administration Block,Central Campus,connector,K-39
+40,Legon Hill Junction,"Legon Hill, near Halls",connector,K-40
+41,Dodowa Road Junction,Campus perimeter,connector,L-41
+42,Legon Hall,Legon Hill,hostel,M-42
+43,Akuafo Hall,Legon Hill,hostel,M-43
+44,Commonwealth Hall,Legon Hill,hostel,M-44
+45,Volta Hall,Legon Hill,hostel,M-45
+46,Mensah Sarbah Hall,Legon Hill,hostel,M-46
+47,Jubilee Hall,Legon Campus,hostel,M-47
+48,Hilla Limann Hall,UGEL Halls Area,hostel,N-48
+49,Alex Kwapong Hall,UGEL Halls Area,hostel,N-49
+50,Elizabeth Sey Hall,UGEL Halls Area,hostel,N-50
+51,Jean Nelson Aka Hall,UGEL Halls Area,hostel,N-51
+52,Valco Trust Hostel,Hostel Area,hostel,N-52
+53,International Students Hostel,Hostel Area,hostel,N-53
+54,Pentagon Hostel (African Union Hall),Hostel Area,hostel,N-54
+55,Bani Hostel,Hostel Area,hostel,N-55
+56,Main Gate Security Post,Campus Main Entrance,connector,O-56
+57,Night Market Junction,Near Commonwealth/Volta Halls,connector,O-57
+58,Engineering Annex Workshop,Near Computer Engineering Dept,maintenance_office,O-58
