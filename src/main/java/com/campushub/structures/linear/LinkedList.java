@@ -281,4 +281,27 @@ public class LinkedList<T> {
         }
         return sb.append("]").toString();
     }
+
+
+    public LinkedListIterator getIterator() {
+        return new LinkedListIterator();
+    }
+
+    public class LinkedListIterator {
+        private Node<T> current = head;
+
+        public boolean hasNext() {
+            return current != null;
+        }
+
+        public T next() {
+            if (!hasNext()) {
+                throw new IllegalStateException("No more elements in the list");
+            }
+            T value = current.value;
+            current = current.next;
+            traversalSteps++;
+            return value;
+        }
+    }
 }
