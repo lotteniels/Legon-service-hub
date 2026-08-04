@@ -1,7 +1,6 @@
 package com.campushub.structures.priority;
 
 // Owner: Priority Structures
-// TODO: implement CustomMap
 public class CustomMap<K, V> {
     private HashTable<K, V> table;
 
@@ -9,7 +8,7 @@ public class CustomMap<K, V> {
         this.table = new HashTable<>();  
     }
 
-    public void put(key, value){
+    public void put(K key, V value){
         table.put(key, value); 
     }
 
