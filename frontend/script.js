@@ -224,7 +224,7 @@ function renderRequestsResult(data, ms) {
   body.textContent = out.trimEnd();
 }
 
- function runDispatch() {
+async function runDispatch() {
   const maxDistanceMeters = Number(document.getElementById('dispatchMaxDist').value) || 1000;
   const onlyAvailable     = document.getElementById('dispatchOnlyAvailable').checked;
 
