@@ -1,25 +1,25 @@
 package com.campushub.structures.priority;
 
-public class PriorityQueue {
-    private Heap heap;
+public class PriorityQueue<T> {
+    private Heap<T> heap;
 
     // Constructor
     public PriorityQueue(int capacity) {
-        this.heap = new Heap(capacity);
+        this.heap = new Heap<>(capacity);
     }
 
     // Add an item with a priority value
-    public void enqueue(int priority) {
-        heap.insert(priority);
+    public void enqueue(T item, int priority) {
+        heap.insert(item, priority);
     }
 
     // Remove and return the highest priority item (smallest value)
-    public int dequeue() {
+    public T dequeue() {
         return heap.removeMin();
     }
 
     // Look at the highest priority item without removing it
-    public int peek() {
+    public T peek() {
         return heap.peek();
     }
 
