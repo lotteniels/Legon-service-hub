@@ -22,6 +22,9 @@ public class HashTable<K, V> {
 
     @SuppressWarnings("unchecked") 
     public HashTable(int capacity){
+        if (capacity < 1) {
+            throw new IllegalArgumentException("capacity must be >= 1");
+        }
         this.capacity = capacity;
         this.buckets = new HashNode[capacity];
         this.size = 0;
@@ -34,7 +37,7 @@ public class HashTable<K, V> {
 
     private int getBucketIndex(K key){
         int hashCode = key.hashCode(); 
-        return Math.abs(hashCode) % capacity; 
+        return (hashCode & 0x7fffffff) % capacity; 
     }
 
 

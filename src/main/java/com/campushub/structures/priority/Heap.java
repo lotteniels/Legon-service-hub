@@ -1,86 +1,101 @@
 package com.campushub.structures.priority;
 
-public class Heap {
-    private int[] heap;
+
+public class Heap<T> {
+    private static class Node<T> {
+        T item;
+        int priority;
+
+        Node(T item, int priority) {
+            this.item = item;
+            this.priority = priority;
+        }
+    }
+
+    private Node<T>[] heap;
     private int size;
     private int capacity;
 
-    // Constructor
+    @SuppressWarnings("unchecked")
     public Heap(int capacity) {
+        if (capacity < 1) {
+            throw new IllegalArgumentException("initialCapacity must be >= 1");
+        }
         this.capacity = capacity;
-        this.heap = new int[capacity];
+        this.heap = (Node<T>[]) new Node[capacity];
         this.size = 0;
     }
 
-    // Add a value to the heap
-    public void insert(int value) {
+    @SuppressWarnings("unchecked")
+    public void insert(T item, int priority) {
+        // Dynamically double the capacity if the heap is full
         if (size >= capacity) {
-            System.out.println("Heap is full!");
-            return;
+            capacity = capacity * 2;
+            Node<T>[] newHeap = (Node<T>[]) new Node[capacity];
+            for (int i = 0; i < size; i++) {
+                newHeap[i] = heap[i];
+            }
+            heap = newHeap;
         }
-        heap[size] = value;
+        
+        heap[size] = new Node<>(item, priority);
         size++;
         heapifyUp(size - 1);
     }
 
-    // Remove and return the smallest value
-    public int removeMin() {
+
+    public T removeMin() {
         if (size == 0) {
             System.out.println("Heap is empty!");
-            return -1;
+            return null;
         }
-        int min = heap[0];
+        T minItem = heap[0].item;
         heap[0] = heap[size - 1];
+        heap[size - 1] = null; // Prevent memory leak (allow Garbage Collection)
         size--;
         heapifyDown(0);
-        return min;
+        return minItem;
     }
 
-    // Look at the smallest value without removing it
-    public int peek() {
+
+    public T peek() {
         if (size == 0) {
-            return -1;
+            return null;
         }
-        return heap[0];
+        return heap[0].item;
     }
 
-    // Return the number of items in the heap
     public int size() {
         return size;
     }
 
-    // Check if the heap is empty
     public boolean isEmpty() {
         return size == 0;
     }
 
-    // Helper: move a value up to its correct position
     private void heapifyUp(int index) {
         int parentIndex = (index - 1) / 2;
-        if (index > 0 && heap[index] < heap[parentIndex]) {
-            // Swap
-            int temp = heap[index];
+        if (index > 0 && heap[index].priority < heap[parentIndex].priority) {
+            Node<T> temp = heap[index];
             heap[index] = heap[parentIndex];
             heap[parentIndex] = temp;
             heapifyUp(parentIndex);
         }
     }
 
-    // Helper: move a value down to its correct position
     private void heapifyDown(int index) {
         int leftChild = 2 * index + 1;
         int rightChild = 2 * index + 2;
         int smallest = index;
 
-        if (leftChild < size && heap[leftChild] < heap[smallest]) {
+        if (leftChild < size && heap[leftChild].priority < heap[smallest].priority) {
             smallest = leftChild;
         }
-        if (rightChild < size && heap[rightChild] < heap[smallest]) {
+        if (rightChild < size && heap[rightChild].priority < heap[smallest].priority) {
             smallest = rightChild;
         }
         if (smallest != index) {
-            // Swap
-            int temp = heap[index];
+            Node<T> temp = heap[index];
             heap[index] = heap[smallest];
             heap[smallest] = temp;
             heapifyDown(smallest);
