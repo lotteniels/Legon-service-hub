@@ -1,3 +1,5 @@
+package com.campushub.structures.tree;
+
 // Owner: Tree Structures
 // A Red-Black Tree built entirely from scratch.
 //
