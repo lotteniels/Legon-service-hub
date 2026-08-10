@@ -5,9 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class RedBlackTreeTest {
 
-    // ── NORMAL CASE ─────────────────────────────────────────────────────
-    // Rubric Requirement Satisfied: Normal Case
-    // "Insert 3 or 4 of these valid items and assert that they can be found successfully."
+    // Normal Case
     // Also uses realistic local Ghanaian campus data.
     @Test
     public void testInsertAndSearchNormalCase() {
@@ -25,9 +23,7 @@ public class RedBlackTreeTest {
         assertEquals("Commonwealth Hall", tree.search(310));
     }
 
-    // ── BOUNDARY CASE 1: EMPTY TREE ─────────────────────────────────────
-    // Rubric Requirement Satisfied: Boundary Cases
-    // "An empty tree (searching should return null or false)."
+    // Boundary Case 1: Empty Tree
     @Test
     public void testSearchOnEmptyTree() {
         RedBlackTree tree = new RedBlackTree();
@@ -37,9 +33,7 @@ public class RedBlackTreeTest {
         assertNull(tree.search(999));
     }
 
-    // ── BOUNDARY CASE 2: SINGLE ELEMENT ─────────────────────────────────
-    // Rubric Requirement Satisfied: Boundary Cases
-    // "A tree with exactly one single element in it."
+    // Boundary Case 2: Single Element
     @Test
     public void testSingleElement() {
         RedBlackTree tree = new RedBlackTree();
@@ -53,9 +47,7 @@ public class RedBlackTreeTest {
         assertNull(tree.search(100));
     }
 
-    // ── INVALID INPUT: DUPLICATE KEY ────────────────────────────────────
-    // Rubric Requirement Satisfied: Invalid Input
-    // "test that tries to insert a duplicate ID. Assert that the tree handles it safely"
+    // Invalid Input: Duplicate Key
     @Test
     public void testDuplicateKeyUpdatesValue() {
         RedBlackTree tree = new RedBlackTree();
@@ -69,9 +61,7 @@ public class RedBlackTreeTest {
         assertEquals("Akuafo Hall (Renovated)", tree.search(150));
     }
 
-    // ── ROBUSTNESS / BOUNDARY CASE 3: NON-EXISTENT KEY ──────────────────
-    // Rubric Requirement Satisfied: Helping reach the 40-test minimum (Test 5)
-    // Verifies that searching for a non-existent key in a populated tree is safe.
+    // Robustness / Boundary Case 3: Non-Existent Key
     @Test
     public void testSearchForNonExistentKeyInPopulatedTree() {
         RedBlackTree tree = new RedBlackTree();
@@ -83,9 +73,7 @@ public class RedBlackTreeTest {
         assertNull(tree.search(999));
     }
 
-    // ── ROBUSTNESS: DUPLICATE DOES NOT BREAK OTHERS ─────────────────────
-    // Rubric Requirement Satisfied: Helping reach the 40-test minimum (Test 6)
-    // Verifies that inserting a duplicate doesn't accidentally corrupt or delete other nodes.
+    // Robustness: Duplicate Does Not Break Others
     @Test
     public void testDuplicateDoesNotCorruptOtherNodes() {
         RedBlackTree tree = new RedBlackTree();
@@ -105,3 +93,4 @@ public class RedBlackTreeTest {
         assertEquals("Alexander Adum Kwapong Hall", tree.search(3));
     }
 }
+

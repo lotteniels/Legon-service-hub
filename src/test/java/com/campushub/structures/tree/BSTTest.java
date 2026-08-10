@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class BSTTest {
 
-    // ── NORMAL CASE ─────────────────────────────────────────────────────
+    // Normal Case
     // Insert 4 valid items into the tree and verify that each one can be
     // found using the search method. This confirms that insert places
     // nodes correctly and search retrieves the right value for each key.
@@ -25,7 +25,7 @@ public class BSTTest {
         assertEquals("Legon Hall",   tree.search(3));
     }
 
-    // ── BOUNDARY CASE 1: EMPTY TREE ─────────────────────────────────────
+    // Boundary Case 1: Empty Tree
     // Search on an empty tree (nothing inserted yet). The search method
     // should return null because there are no nodes to find.
     @Test
@@ -38,7 +38,7 @@ public class BSTTest {
         assertNull(tree.search(0));
     }
 
-    // ── BOUNDARY CASE 2: SINGLE ELEMENT ─────────────────────────────────
+    // Boundary Case 2: Single Element
     // Insert exactly one item and verify it can be found. Also check that
     // searching for a different key returns null, confirming the tree
     // works correctly even with just one node.
@@ -56,7 +56,7 @@ public class BSTTest {
         assertNull(tree.search(99));
     }
 
-    // ── INVALID INPUT: DUPLICATE KEY ────────────────────────────────────
+    // Invalid Input: Duplicate Key
     // Insert the same key twice with different values. The tree should
     // NOT create a duplicate node — instead it should update the value
     // associated with that key. This confirms the tree handles duplicates
@@ -65,14 +65,14 @@ public class BSTTest {
     public void testDuplicateKeyUpdatesValue() {
         BST tree = new BST();
 
-        tree.insert(20, "Old Value");
-        tree.insert(20, "New Value");
+        tree.insert(20, "Evandy Hostel");
+        tree.insert(20, "Evandy Hostel (Renovated)");
 
         // The value should be updated to the second insert's value.
-        assertEquals("New Value", tree.search(20));
+        assertEquals("Evandy Hostel (Renovated)", tree.search(20));
     }
 
-    // ── DUPLICATE KEY WITH OTHER NODES ──────────────────────────────────
+    // Duplicate Key With Other Nodes
     // Insert several items, then insert a duplicate key. Verify that
     // only the duplicate's value is updated and all other entries remain
     // unchanged — proving that the duplicate handling does not corrupt
@@ -96,7 +96,7 @@ public class BSTTest {
         assertEquals("N Block",      tree.search(15));
     }
 
-    // ── SEARCH FOR NON-EXISTENT KEY ─────────────────────────────────────
+    // Search For Non-Existent Key
     // Insert a few items, then search for a key that was never inserted.
     // The search should return null, not crash or return a wrong value.
     @Test
@@ -111,3 +111,4 @@ public class BSTTest {
         assertNull(tree.search(1));
     }
 }
+
