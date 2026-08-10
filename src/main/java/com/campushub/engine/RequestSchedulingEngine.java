@@ -1,6 +1,9 @@
 package com.campushub.engine;
 
-// Owner: Integration (wraps Priority Structures pod)
-// TODO: implement RequestSchedulingEngine
 public class RequestSchedulingEngine {
+    public RequestSchedulingEngine() {}
+
+    public String scheduleRequests() {
+        return "Simulated Schedule Generated";
+    }
 }
