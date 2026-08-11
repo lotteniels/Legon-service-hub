@@ -1,6 +1,9 @@
 package com.campushub.engine;
 
-// Owner: Integration (wraps Graphs pod)
-// TODO: implement RouteEngine
 public class RouteEngine {
+    public RouteEngine() {}
+
+    public String calculateShortestPath(int sourceId, int destinationId) {
+        return "Simulated Path: Location " + sourceId + " -> Location " + destinationId;
+    }
 }
