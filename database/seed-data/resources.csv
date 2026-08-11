@@ -1,0 +1,50 @@
+﻿resourceId,type,name,homeLocationId,capacity,availabilityStatus
+1,staff,Maintenance Technician - Electrical,33,1,available
+2,staff,Maintenance Technician - Plumbing,33,1,available
+3,staff,Maintenance Technician - Carpentry,33,1,available
+4,staff,Estate Management Officer,33,1,available
+5,staff,Physical Development/Planning Officer,33,1,available
+6,staff,Security Guard - Main Gate,56,2,available
+7,staff,Security Guard - Halls Patrol,40,3,available
+8,staff,Shuttle Driver,30,4,available
+9,staff,Lab Technician - Chemistry,17,1,available
+10,staff,Lab Technician - Physics,18,1,available
+11,staff,Lab Technician - Biochemistry,19,1,available
+12,staff,Lab Technician - Computer Engineering,21,1,available
+13,staff,IT Support Officer (UGCS),16,2,available
+14,vehicle,Shuttle Bus #1 (RSTC),30,1,available
+15,vehicle,Shuttle Bus #2 (RSTC),30,1,available
+16,vehicle,Shuttle Bus #3 (RSTC),30,1,available
+17,vehicle,Shuttle Bus #4 (RSTC),30,1,available
+18,vehicle,Shuttle Bus #5 (RSTC),30,1,available
+19,vehicle,Shuttle Bus #6 (RSTC),30,1,available
+20,vehicle,Shuttle Bus #7 (RSTC),30,1,available
+21,vehicle,Shuttle Bus #8 (RSTC),30,1,available
+22,vehicle,Shuttle Bus #9 (RSTC),30,1,available
+23,vehicle,Shuttle Bus #10 (RSTC),30,1,available
+24,equipment,Electrical Toolkit,33,3,available
+25,equipment,Plumbing Toolkit,33,3,available
+26,equipment,Ladder/Scaffold Set,33,2,available
+27,equipment,Generator (Backup Power),39,1,available
+28,equipment,Microscope Set,20,15,available
+29,equipment,Spectrophotometer,17,2,available
+30,equipment,Centrifuge,19,3,available
+31,equipment,Oscilloscope,18,5,available
+32,equipment,3D Printer,21,2,available
+33,equipment,Projector - Lecture Hall,1,1,available
+34,equipment,Projector - Lecture Hall,2,1,available
+35,equipment,Projector - Lecture Hall,12,1,available
+36,equipment,Smart Screen (Classroom Modernisation Project),11,1,available
+37,equipment,Smart Screen (Classroom Modernisation Project),2,1,available
+38,equipment,Public Address System,1,1,available
+39,equipment,Ceiling Fans - Great Hall,1,12,available
+40,equipment,Chairs - Great Hall,1,500,available
+41,equipment,Reading/Lab Benches - Chemistry Lab,17,20,available
+42,equipment,Lab Stools - Physics Lab,18,25,available
+43,equipment,Computers - UGCS Lab,16,60,available
+44,equipment,Air Conditioners - UGCS Lab,16,8,available
+45,equipment,Windows - Great Hall,1,20,available
+46,equipment,Lighting Fixtures - Great Hall,1,30,available
+47,equipment,Whiteboards - JQB Lecture Rooms,2,6,available
+48,equipment,Fire Extinguishers - Labs (all),20,10,available
+49,equipment,First Aid Kits - Halls (all),40,14,available

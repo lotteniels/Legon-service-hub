@@ -1,20 +1,20 @@
 package com.campushub.db;
 
-import java.sql.*;  
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
-// Owner: Database and Data
-// TODO: implement DatabaseConnection
-public class DatabaseConnection { 
+public class DatabaseConnection {
+
     private static final String URL = "jdbc:sqlite:database/legon_hub.db";
 
-    public static Connection getConnection(){
-        Connection conn = null;
-
-        try{
-            conn = DriverManager.getConnection(URL);
-        } catch (SQLException e){ 
-            System.out.println("Failed to connect to SQLite: " + e.getMessage());     
-        } 
-        return conn;
+    public static Connection getConnection() throws SQLException {
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            throw new SQLException("SQLite JDBC driver not found on classpath.", e);
+        }
+        return DriverManager.getConnection(URL);
     }
 }
+
