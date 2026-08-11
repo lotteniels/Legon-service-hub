@@ -1,3 +1,9 @@
+import com.campushub.db.DatabaseConnection;
+import com.campushub.model.Location;
+import com.campushub.model.Resource;
+import com.campushub.model.Road;
+import com.campushub.model.ServiceRequest;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,8 +18,6 @@ import java.util.List;
  *  - queries the table
  *  - validates each row before adding it to the result list
  *  - logs rejected rows (and a summary on completion) to audit_events
- *
- * NOTE: adjust the SQL column names below if they differ from your schema.sql.
  */
 public class DataLoader {
 
@@ -23,25 +27,24 @@ public class DataLoader {
         List<Location> locations = new ArrayList<>();
         int rejected = 0;
 
-        String sql = "SELECT location_id, name, type, latitude, longitude FROM locations";
+        String sql = "SELECT locationId, name, area, type, coordinates FROM locations";
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-
             while (rs.next()) {
-                int id = rs.getInt("location_id");
+                Integer locationId = getNullableInt(rs, "locationId");
                 String name = rs.getString("name");
+                String area = rs.getString("area");
                 String type = rs.getString("type");
-                double lat = rs.getDouble("latitude");
-                double lng = rs.getDouble("longitude");
+                String coordinates = rs.getString("coordinates");
 
-                if (!isValidLocation(id, name)) {
+                if (!isValidLocation(locationId, name, coordinates)) {
                     rejected++;
                     logAudit(conn, "LOCATION_REJECTED",
-                            "Rejected location row with id=" + id + " (missing/invalid required field)");
+                            "Rejected location row with locationId=" + locationId + " (missing/invalid required field)");
                     continue;
                 }
 
-                locations.add(new Location(id, name, type, lat, lng));
+                locations.add(new Location(locationId, name, area, type, coordinates));
             }
         }
 
@@ -50,8 +53,10 @@ public class DataLoader {
         return locations;
     }
 
-    private static boolean isValidLocation(int id, String name) {
-        return id > 0 && name != null && !name.trim().isEmpty();
+    private static boolean isValidLocation(Integer locationId, String name, String coordinates) {
+        return locationId != null && locationId > 0
+                && name != null && !name.trim().isEmpty()
+                && coordinates != null && !coordinates.trim().isEmpty();
     }
 
     // ---------- ROADS ----------
@@ -60,25 +65,26 @@ public class DataLoader {
         List<Road> roads = new ArrayList<>();
         int rejected = 0;
 
-        String sql = "SELECT road_id, from_location_id, to_location_id, distance, walkable FROM roads";
+        String sql = "SELECT fromLocationId, toLocationId, distance_m, travelTime_min, roadConditionWeight FROM roads";
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-
             while (rs.next()) {
-                int id = rs.getInt("road_id");
-                int from = rs.getInt("from_location_id");
-                int to = rs.getInt("to_location_id");
-                double distance = rs.getDouble("distance");
-                boolean walkable = rs.getBoolean("walkable");
+                Integer fromLocationId = getNullableInt(rs, "fromLocationId");
+                Integer toLocationId = getNullableInt(rs, "toLocationId");
+                Double distance_m = getNullableDouble(rs, "distance_m");
+                Double travelTime_min = getNullableDouble(rs, "travelTime_min");
+                Double roadConditionWeight = getNullableDouble(rs, "roadConditionWeight");
 
-                if (!isValidRoad(id, from, to, distance)) {
+                if (!isValidRoad(fromLocationId, toLocationId, distance_m, travelTime_min, roadConditionWeight)) {
                     rejected++;
                     logAudit(conn, "ROAD_REJECTED",
-                            "Rejected road row with id=" + id + " (missing/invalid required field)");
+                            "Rejected road row with fromLocationId=" + fromLocationId
+                                    + ", toLocationId=" + toLocationId + " (missing/invalid required field)");
                     continue;
                 }
 
-                roads.add(new Road(id, from, to, distance, walkable));
+                roads.add(new Road(fromLocationId, toLocationId,
+                        distance_m, travelTime_min, roadConditionWeight));
             }
         }
 
@@ -87,8 +93,15 @@ public class DataLoader {
         return roads;
     }
 
-    private static boolean isValidRoad(int id, int from, int to, double distance) {
-        return id > 0 && from > 0 && to > 0 && from != to && distance >= 0;
+    private static boolean isValidRoad(Integer fromLocationId, Integer toLocationId,
+                                       Double distance_m, Double travelTime_min,
+                                       Double roadConditionWeight) {
+        return fromLocationId != null && fromLocationId > 0
+                && toLocationId != null && toLocationId > 0
+                && !fromLocationId.equals(toLocationId)
+                && distance_m != null && distance_m >= 0
+                && travelTime_min != null && travelTime_min >= 0
+                && roadConditionWeight != null && roadConditionWeight >= 0;
     }
 
     // ---------- RESOURCES ----------
@@ -97,25 +110,26 @@ public class DataLoader {
         List<Resource> resources = new ArrayList<>();
         int rejected = 0;
 
-        String sql = "SELECT resource_id, name, category, location_id, available FROM resources";
+        String sql = "SELECT resourceId, type, name, homeLocationId, capacity, availabilityStatus FROM resources";
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-
             while (rs.next()) {
-                int id = rs.getInt("resource_id");
+                Integer resourceId = getNullableInt(rs, "resourceId");
+                String type = rs.getString("type");
                 String name = rs.getString("name");
-                String category = rs.getString("category");
-                int locationId = rs.getInt("location_id");
-                boolean available = rs.getBoolean("available");
+                Integer homeLocationId = getNullableInt(rs, "homeLocationId");
+                Integer capacity = getNullableInt(rs, "capacity");
+                String availabilityStatus = rs.getString("availabilityStatus");
 
-                if (!isValidResource(id, name, locationId)) {
+                if (!isValidResource(resourceId, type, name, homeLocationId, capacity, availabilityStatus)) {
                     rejected++;
                     logAudit(conn, "RESOURCE_REJECTED",
-                            "Rejected resource row with id=" + id + " (missing/invalid required field)");
+                            "Rejected resource row with resourceId=" + resourceId + " (missing/invalid required field)");
                     continue;
                 }
 
-                resources.add(new Resource(id, name, category, locationId, available));
+                resources.add(new Resource(resourceId, type, name,
+                        homeLocationId, capacity, availabilityStatus));
             }
         }
 
@@ -124,8 +138,15 @@ public class DataLoader {
         return resources;
     }
 
-    private static boolean isValidResource(int id, String name, int locationId) {
-        return id > 0 && name != null && !name.trim().isEmpty() && locationId > 0;
+    private static boolean isValidResource(Integer resourceId, String type, String name,
+                                           Integer homeLocationId, Integer capacity,
+                                           String availabilityStatus) {
+        return resourceId != null && resourceId > 0
+                && type != null && !type.trim().isEmpty()
+                && name != null && !name.trim().isEmpty()
+                && homeLocationId != null && homeLocationId > 0
+                && capacity != null && capacity >= 0
+                && availabilityStatus != null && !availabilityStatus.trim().isEmpty();
     }
 
     // ---------- SERVICE REQUESTS ----------
@@ -134,26 +155,30 @@ public class DataLoader {
         List<ServiceRequest> requests = new ArrayList<>();
         int rejected = 0;
 
-        String sql = "SELECT request_id, location_id, description, priority, status, timestamp FROM service_requests";
+        String sql = "SELECT requestId, sourceLocationId, destinationLocationId, category, urgency, timeSubmitted, deadline, status, fineAmountGHS FROM service_requests";
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-
             while (rs.next()) {
-                int id = rs.getInt("request_id");
-                int locationId = rs.getInt("location_id");
-                String description = rs.getString("description");
-                int priority = rs.getInt("priority");
+                Integer requestId = getNullableInt(rs, "requestId");
+                Integer sourceLocationId = getNullableInt(rs, "sourceLocationId");
+                Integer destinationLocationId = getNullableInt(rs, "destinationLocationId");
+                String category = rs.getString("category");
+                String urgency = rs.getString("urgency");
+                String timeSubmitted = rs.getString("timeSubmitted");
+                String deadline = rs.getString("deadline");
                 String status = rs.getString("status");
-                String timestamp = rs.getString("timestamp");
+                Double fineAmountGHS = getNullableDouble(rs, "fineAmountGHS");
 
-                if (!isValidServiceRequest(id, locationId, priority, status)) {
+                if (!isValidServiceRequest(requestId, sourceLocationId, destinationLocationId,
+                        category, urgency, timeSubmitted, deadline, status, fineAmountGHS)) {
                     rejected++;
                     logAudit(conn, "SERVICE_REQUEST_REJECTED",
-                            "Rejected service_request row with id=" + id + " (missing/invalid required field)");
+                            "Rejected service_request row with requestId=" + requestId + " (missing/invalid required field)");
                     continue;
                 }
 
-                requests.add(new ServiceRequest(id, locationId, description, priority, status, timestamp));
+                requests.add(new ServiceRequest(requestId, sourceLocationId, destinationLocationId,
+                        category, urgency, timeSubmitted, deadline, status, fineAmountGHS));
             }
         }
 
@@ -162,19 +187,35 @@ public class DataLoader {
         return requests;
     }
 
-    private static boolean isValidServiceRequest(int id, int locationId, int priority, String status) {
-        return id > 0 && locationId > 0 && priority > 0
-                && status != null && !status.trim().isEmpty();
+    private static boolean isValidServiceRequest(Integer requestId,
+                                                 Integer sourceLocationId, Integer destinationLocationId,
+                                                 String category, String urgency, String timeSubmitted,
+                                                 String deadline, String status, Double fineAmountGHS) {
+        return requestId != null && requestId > 0
+                && sourceLocationId != null && sourceLocationId > 0
+                && destinationLocationId != null && destinationLocationId > 0
+                && category != null && !category.trim().isEmpty()
+                && urgency != null && !urgency.trim().isEmpty()
+                && timeSubmitted != null && !timeSubmitted.trim().isEmpty()
+                && deadline != null && !deadline.trim().isEmpty()
+                && status != null && !status.trim().isEmpty()
+                && fineAmountGHS != null && fineAmountGHS >= 0;
+    }
+
+    private static Integer getNullableInt(ResultSet rs, String column) throws SQLException {
+        int value = rs.getInt(column);
+        return rs.wasNull() ? null : value;
+    }
+
+    private static Double getNullableDouble(ResultSet rs, String column) throws SQLException {
+        double value = rs.getDouble(column);
+        return rs.wasNull() ? null : value;
     }
 
     // ---------- AUDIT LOGGING ----------
 
-    /**
-     * Inserts a row into audit_events. Adjust column names/types to match schema.sql
-     * (expected columns here: event_type, description, event_time).
-     */
     private static void logAudit(Connection conn, String eventType, String description) throws SQLException {
-        String sql = "INSERT INTO audit_events (event_type, description, event_time) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO audit_events (eventType, description, timestamp) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, eventType);
             stmt.setString(2, description);
@@ -186,7 +227,7 @@ public class DataLoader {
     // ---------- TEST / DEMO ----------
 
     public static void main(String[] args) {
-        try (Connection conn = DBConnection.connect()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             List<Location> locations = loadLocations(conn);
             List<Road> roads = loadRoads(conn);
             List<Resource> resources = loadResources(conn);
