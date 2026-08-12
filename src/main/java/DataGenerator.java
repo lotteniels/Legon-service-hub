@@ -6,7 +6,7 @@ import java.util.*;
 
 public class DataGenerator {
 
-    private static final String DB_URL = "jdbc:sqlite:service_hub.db";
+    private static final String DB_URL = "jdbc:sqlite:database/legon_hub.db";
 
     public static void main(String[] args) {
         try (Connection conn = DriverManager.getConnection(DB_URL)) {
@@ -38,13 +38,20 @@ public class DataGenerator {
     }
 
     private static void clearTables(Connection conn) throws SQLException {
-        String[] tables = {"service_requests", "roads", "resources", "locations"};
+        String[] tables = {"service_requests", "roads", "resources", "locations",
+                           "algorithm_runs", "audit_events"};
         try (Statement stmt = conn.createStatement()) {
+            stmt.execute("CREATE TABLE IF NOT EXISTS locations (locationId INTEGER PRIMARY KEY, name TEXT, area TEXT, type TEXT, coordinates TEXT)");
+            stmt.execute("CREATE TABLE IF NOT EXISTS roads (fromLocationId INTEGER, toLocationId INTEGER, distance_m REAL, travelTime_min REAL, roadConditionWeight REAL)");
+            stmt.execute("CREATE TABLE IF NOT EXISTS service_requests (requestId INTEGER PRIMARY KEY, sourceLocationId INTEGER, destinationLocationId INTEGER, category TEXT, urgency TEXT, timeSubmitted TEXT, deadline TEXT, status TEXT, fineAmountGHS REAL)");
+            stmt.execute("CREATE TABLE IF NOT EXISTS resources (resourceId INTEGER PRIMARY KEY, type TEXT, name TEXT, homeLocationId INTEGER, capacity INTEGER, availabilityStatus TEXT)");
+            stmt.execute("CREATE TABLE IF NOT EXISTS algorithm_runs (runId INTEGER PRIMARY KEY, algorithmName TEXT, inputSize INTEGER, timeNs INTEGER, memoryKb INTEGER, dateRun TEXT)");
+            stmt.execute("CREATE TABLE IF NOT EXISTS audit_events (eventId INTEGER PRIMARY KEY, eventType TEXT, description TEXT, timestamp TEXT)");
             for (String t : tables) {
                 stmt.executeUpdate("DELETE FROM " + t);
             }
         }
-        System.out.println("Cleared existing table data.");
+        System.out.println("Tables ready and cleared.");
     }
 
     private static List<String[]> readCsv(String path) throws IOException {

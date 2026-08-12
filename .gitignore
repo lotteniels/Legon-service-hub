@@ -5,6 +5,7 @@ node_modules/
 *.log
 .DS_Store
 *.db
+!database/legon_hub.db
 *.db-journal
 .idea/
 *.iml
