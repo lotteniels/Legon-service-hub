@@ -2,7 +2,7 @@ package com.campushub.datagen;
 
 import java.io.*;
 import java.sql.*;
-import java.util.*;
+import com.campushub.structures.linear.DynamicArray;
 
 public class DataGenerator {
 
@@ -54,8 +54,8 @@ public class DataGenerator {
         System.out.println("Tables ready and cleared.");
     }
 
-    private static List<String[]> readCsv(String path) throws IOException {
-        List<String[]> rows = new ArrayList<>();
+    private static DynamicArray<String[]> readCsv(String path) throws IOException {
+        DynamicArray<String[]> rows = new DynamicArray<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             String line;
             boolean first = true;
@@ -69,7 +69,7 @@ public class DataGenerator {
     }
 
     private static String[] parseCsvLine(String line) {
-        List<String> fields = new ArrayList<>();
+        DynamicArray<String> fields = new DynamicArray<>();
         StringBuilder current = new StringBuilder();
         boolean inQuotes = false;
 
@@ -85,14 +85,19 @@ public class DataGenerator {
             }
         }
         fields.add(current.toString().trim());
-        return fields.toArray(new String[0]);
+        String[] arr = new String[fields.size()];
+        for (int i = 0; i < fields.size(); i++) {
+            arr[i] = fields.get(i);
+        }
+        return arr;
     }
 
     private static void seedTable(Connection conn, String csvPath, String insertSql, String[] types) throws SQLException, IOException {
-        List<String[]> rows = readCsv(csvPath);
+        DynamicArray<String[]> rows = readCsv(csvPath);
         try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
             int inserted = 0;
-            for (String[] row : rows) {
+            for (int r = 0; r < rows.size(); r++) {
+                String[] row = rows.get(r);
                 for (int i = 0; i < types.length; i++) {
                     String value = i < row.length ? row[i] : null;
                     if (value == null || value.isEmpty()) {

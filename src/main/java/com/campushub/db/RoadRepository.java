@@ -2,13 +2,12 @@ package com.campushub.db;
 
 import com.campushub.model.Road;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.campushub.structures.linear.DynamicArray;
 
 public class RoadRepository {
 
-    public List<Road> getAllRoads() throws SQLException {
-        List<Road> list = new ArrayList<>();
+    public DynamicArray<Road> getAllRoads() throws SQLException {
+        DynamicArray<Road> list = new DynamicArray<>();
         String sql = "SELECT fromLocationId, toLocationId, distance_m, travelTime_min, roadConditionWeight FROM roads";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();

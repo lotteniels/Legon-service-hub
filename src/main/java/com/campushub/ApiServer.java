@@ -8,9 +8,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.campushub.structures.priority.HashTable;
 import com.campushub.db.*;
 import com.campushub.model.*;
 import com.campushub.engine.*;
@@ -129,22 +127,23 @@ public class ApiServer {
     // Engine Handlers 
 
     private String handleRoute(HttpExchange t) {
-        Map<String, String> params = parseQuery(t.getRequestURI());
+        HashTable<String, String> params = parseQuery(t.getRequestURI());
         int from = parseInt(params.get("from"), 1);
         int to   = parseInt(params.get("to"), 35);
         return routeEngine.calculateShortestPath(from, to);
     }
 
     private String handleSchedule(HttpExchange t) {
-        Map<String, String> params = parseQuery(t.getRequestURI());
-        String mode = params.getOrDefault("mode", "priority");
+        HashTable<String, String> params = parseQuery(t.getRequestURI());
+        String mode = params.get("mode");
+        if (mode == null) mode = "priority";
         return "fifo".equalsIgnoreCase(mode)
             ? schedulingEngine.scheduleRequestsFIFO()
             : schedulingEngine.scheduleRequests();
     }
 
     private String handleIndex(HttpExchange t) {
-        Map<String, String> params = parseQuery(t.getRequestURI());
+        HashTable<String, String> params = parseQuery(t.getRequestURI());
         String type = params.get("type");
         String idStr = params.get("id");
         if (type == null || idStr == null) {
@@ -194,8 +193,8 @@ public class ApiServer {
         }
     }
 
-    private Map<String, String> parseQuery(URI uri) {
-        Map<String, String> params = new HashMap<>();
+    private HashTable<String, String> parseQuery(URI uri) {
+        HashTable<String, String> params = new HashTable<>();
         String query = uri.getQuery();
         if (query == null) return params;
         for (String pair : query.split("&")) {

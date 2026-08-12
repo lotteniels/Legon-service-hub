@@ -1,7 +1,6 @@
 package com.campushub.structures.tree;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.campushub.structures.linear.DynamicArray;
 
 /**
  * A B-Tree that maps keys to values (used by IndexingEngine / M6).
@@ -227,9 +226,9 @@ public class BTree<K extends Comparable<K>, V> {
         public final boolean found;
         public final int nodesVisited;
         public final int comparisons;
-        public final List<String> steps;
+        public final DynamicArray<String> steps;
 
-        SearchResult(boolean found, int nodesVisited, int comparisons, List<String> steps) {
+        SearchResult(boolean found, int nodesVisited, int comparisons, DynamicArray<String> steps) {
             this.found = found;
             this.nodesVisited = nodesVisited;
             this.comparisons = comparisons;
@@ -250,7 +249,7 @@ public class BTree<K extends Comparable<K>, V> {
      */
     public SearchResult searchWithTrace(K searchKey) {
         requireKey(searchKey);
-        List<String> steps = new ArrayList<>();
+        DynamicArray<String> steps = new DynamicArray<>();
         int nodes = 0;
         int comparisons = 0;
         int level = 0;
@@ -621,13 +620,13 @@ public class BTree<K extends Comparable<K>, V> {
     // ---------------------------------------------------------------- TRAVERSAL / DEBUG
 
     /** All keys in sorted order. An in-order walk of a B-Tree is a sorted read of the index. */
-    public List<K> keysInOrder() {
-        List<K> out = new ArrayList<>(size);
+    public DynamicArray<K> keysInOrder() {
+        DynamicArray<K> out = new DynamicArray<>(size);
         collect(root, out);
         return out;
     }
 
-    private void collect(Node x, List<K> out) {
+    private void collect(Node x, DynamicArray<K> out) {
         for (int i = 0; i < x.n; i++) {
             if (!x.leaf) {
                 collect(child(x, i), out);

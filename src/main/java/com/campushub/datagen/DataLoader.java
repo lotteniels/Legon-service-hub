@@ -1,3 +1,5 @@
+package com.campushub.datagen;
+
 import com.campushub.db.DatabaseConnection;
 import com.campushub.model.Location;
 import com.campushub.model.Resource;
@@ -9,9 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.campushub.structures.linear.DynamicArray;
 /**
  * Read side of the data layer (mirrors DataGenerator.java, which only writes).
  * One load method per table. Each method:
@@ -23,8 +23,8 @@ public class DataLoader {
 
     // ---------- LOCATIONS ----------
 
-    public static List<Location> loadLocations(Connection conn) throws SQLException {
-        List<Location> locations = new ArrayList<>();
+    public static DynamicArray<Location> loadLocations(Connection conn) throws SQLException {
+        DynamicArray<Location> locations = new DynamicArray<>();
         int rejected = 0;
 
         String sql = "SELECT locationId, name, area, type, coordinates FROM locations";
@@ -61,8 +61,8 @@ public class DataLoader {
 
     // ---------- ROADS ----------
 
-    public static List<Road> loadRoads(Connection conn) throws SQLException {
-        List<Road> roads = new ArrayList<>();
+    public static DynamicArray<Road> loadRoads(Connection conn) throws SQLException {
+        DynamicArray<Road> roads = new DynamicArray<>();
         int rejected = 0;
 
         String sql = "SELECT fromLocationId, toLocationId, distance_m, travelTime_min, roadConditionWeight FROM roads";
@@ -106,8 +106,8 @@ public class DataLoader {
 
     // ---------- RESOURCES ----------
 
-    public static List<Resource> loadResources(Connection conn) throws SQLException {
-        List<Resource> resources = new ArrayList<>();
+    public static DynamicArray<Resource> loadResources(Connection conn) throws SQLException {
+        DynamicArray<Resource> resources = new DynamicArray<>();
         int rejected = 0;
 
         String sql = "SELECT resourceId, type, name, homeLocationId, capacity, availabilityStatus FROM resources";
@@ -151,8 +151,8 @@ public class DataLoader {
 
     // ---------- SERVICE REQUESTS ----------
 
-    public static List<ServiceRequest> loadServiceRequests(Connection conn) throws SQLException {
-        List<ServiceRequest> requests = new ArrayList<>();
+    public static DynamicArray<ServiceRequest> loadServiceRequests(Connection conn) throws SQLException {
+        DynamicArray<ServiceRequest> requests = new DynamicArray<>();
         int rejected = 0;
 
         String sql = "SELECT requestId, sourceLocationId, destinationLocationId, category, urgency, timeSubmitted, deadline, status, fineAmountGHS FROM service_requests";
@@ -228,10 +228,10 @@ public class DataLoader {
 
     public static void main(String[] args) {
         try (Connection conn = DatabaseConnection.getConnection()) {
-            List<Location> locations = loadLocations(conn);
-            List<Road> roads = loadRoads(conn);
-            List<Resource> resources = loadResources(conn);
-            List<ServiceRequest> serviceRequests = loadServiceRequests(conn);
+            DynamicArray<Location> locations = loadLocations(conn);
+            DynamicArray<Road> roads = loadRoads(conn);
+            DynamicArray<Resource> resources = loadResources(conn);
+            DynamicArray<ServiceRequest> serviceRequests = loadServiceRequests(conn);
 
             System.out.println("locations: " + locations.size() + " rows");
             System.out.println("roads: " + roads.size() + " rows");
