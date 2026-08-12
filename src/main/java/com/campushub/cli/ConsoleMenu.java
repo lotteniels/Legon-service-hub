@@ -27,8 +27,8 @@ public class ConsoleMenu {
         while (running) {
             System.out.println("\n  Legon Service Hub (CLI) ");
             System.out.println("1. Dispatch / Schedule Requests");
-            System.out.println("2. Route Finder (Under Construction)");
-            System.out.println("3. Resource Optimization (Under Construction)");
+            System.out.println("2. Route Finder");
+            System.out.println("3. Resource Optimization");
             System.out.println("4. Efficiency Lab");
             System.out.println("5. Search / Indexing");
             System.out.println("6. Exit");
