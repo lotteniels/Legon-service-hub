@@ -6,12 +6,14 @@
   <title>Legon Service Hub — Campus Operations Dashboard</title>
   <meta name="description" content="Interactive dashboard for the University of Ghana Legon Service Hub — shortest routes, request scheduling, resource dispatch, and performance benchmarking.">
   <link rel="stylesheet" href="style.css">
+  <!-- Chart.js for Sorting Demo & Efficiency Lab -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <div class="app-wrapper">
 
-  <!-- ── Header -->
+  <!--Header-->
   <header class="app-header">
     <div class="header-logo">
       <img src="assets/logo.jpg" alt="University of Ghana logo" class="logo">
@@ -27,179 +29,232 @@
     </div>
   </header>
 
-  <!-- ── Backend URL -->
+  <!--Backend URL Config Strip-->
   <div class="config-strip">
     <label for="baseUrl">Backend URL</label>
-    <input type="text" id="baseUrl" value="http://localhost:8080/api" spellcheck="false">
+    <input type="text" id="baseUrl" value="" placeholder="e.g. http://localhost:8080" spellcheck="false">
     <button class="btn btn-primary" onclick="checkHealth()" id="pingBtn" style="padding:6px 14px;font-size:12px;">
       <span class="btn-text">Ping</span>
     </button>
   </div>
 
-  <!-- ── Stats Overview -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-label">Locations</div>
-      <div class="stat-value">58</div>
-      <div class="stat-sub">across campus</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Roads / Edges</div>
-      <div class="stat-value">136</div>
-      <div class="stat-sub">in road graph</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Service Requests</div>
-      <div class="stat-value">300</div>
-      <div class="stat-sub">seeded in DB</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Resources</div>
-      <div class="stat-value">49</div>
-      <div class="stat-sub">staff &middot; vehicles &middot; equipment</div>
-    </div>
-  </div>
-
-  <!-- ── Navigation Tabs -->
+  <!--Navigation Tabs (6 Tabs)-->
   <nav class="nav-tabs" role="tablist">
-    <button class="nav-tab active" id="tab-route"     onclick="switchTab('route')"     role="tab" aria-selected="true">
+    <button class="nav-tab active" id="tab-dashboard" onclick="switchTab('dashboard')" role="tab" aria-selected="true">
+      <svg class="tab-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h11A1.5 1.5 0 0 1 15 2.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 13.5v-11ZM2.5 2a.5.5 0 0 0-.5.5v4h5v-4.5h-4.5ZM8 2v4.5h5v-4A.5.5 0 0 0 12.5 2H8ZM2 7.5v6a.5.5 0 0 0 .5.5H7v-6.5H2Zm6 6.5h4.5a.5.5 0 0 0 .5-.5v-6H8v6.5Z" fill="currentColor"/></svg>
+      <span class="tab-label">Dashboard</span>
+    </button>
+
+    <button class="nav-tab" id="tab-route" onclick="switchTab('route')" role="tab">
       <svg class="tab-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 1.5A4.5 4.5 0 0 0 3.5 6c0 2.9 3.5 7.5 4.5 8.5C9 13.5 12.5 8.9 12.5 6A4.5 4.5 0 0 0 8 1.5Zm0 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" fill="currentColor"/></svg>
-      <span class="tab-label">Shortest Route</span>
+      <span class="tab-label">Route Finder</span>
     </button>
-    <button class="nav-tab" id="tab-requests" onclick="switchTab('requests')" role="tab">
+
+    <button class="nav-tab" id="tab-queue" onclick="switchTab('queue')" role="tab">
       <svg class="tab-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 2.5A1.5 1.5 0 0 1 3.5 1h6.086a1.5 1.5 0 0 1 1.06.44l2.915 2.914A1.5 1.5 0 0 1 14 5.415V13.5A1.5 1.5 0 0 1 12.5 15h-9A1.5 1.5 0 0 1 2 13.5v-11Zm4 5.5h4v1H6V8Zm0-2.5h4V6.5H6V5.5Z" fill="currentColor"/></svg>
-      <span class="tab-label">Request Queue</span>
+      <span class="tab-label">Dispatch Queue</span>
     </button>
-    <button class="nav-tab" id="tab-dispatch" onclick="switchTab('dispatch')" role="tab">
+
+    <button class="nav-tab" id="tab-optimization" onclick="switchTab('optimization')" role="tab">
       <svg class="tab-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 2.75A.75.75 0 0 1 1.75 2h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 2.75Zm0 5A.75.75 0 0 1 1.75 7h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 1 7.75Zm0 5A.75.75 0 0 1 1.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5A.75.75 0 0 1 1 12.75Zm10.22-.97 2.25-2.25a.75.75 0 0 1 1.06 1.06l-2.25 2.25-1.28 1.28a.75.75 0 0 1-1.06 0L8.69 12.56a.75.75 0 0 1 1.06-1.06l.72.72 1.75-1.44Z" fill="currentColor"/></svg>
-      <span class="tab-label">Dispatch</span>
+      <span class="tab-label">Optimization</span>
     </button>
+
     <button class="nav-tab" id="tab-search" onclick="switchTab('search')" role="tab">
       <svg class="tab-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.68 11.74a6 6 0 1 1 1.06-1.06l2.76 2.75a.75.75 0 1 1-1.06 1.06l-2.76-2.75ZM6 10.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z" fill="currentColor"/></svg>
-      <span class="tab-label">Search Locations</span>
+      <span class="tab-label">Search & Index</span>
     </button>
-    <button class="nav-tab" id="tab-benchmark" onclick="switchTab('benchmark')" role="tab">
+
+    <button class="nav-tab" id="tab-sorting" onclick="switchTab('sorting')" role="tab">
+      <svg class="tab-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 11h3v3H2v-3zm5-4h3v7H7V7zm5-5h3v12h-3V2z" fill="currentColor"/></svg>
+      <span class="tab-label">Sorting Demo</span>
+    </button>
+
+    <button class="nav-tab" id="tab-efficiency" onclick="switchTab('efficiency')" role="tab">
       <svg class="tab-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.75a.75.75 0 0 0-1.5 0v12.5c0 .414.336.75.75.75h13.5a.75.75 0 0 0 0-1.5H1.5V1.75ZM14.78 4.97a.75.75 0 0 0-1.06-1.06L9 8.69 6.53 6.22a.75.75 0 0 0-1.06 0L3 8.69V10h1.5l2-2 2.47 2.47a.75.75 0 0 0 1.06 0L14.78 4.97Z" fill="currentColor"/></svg>
-      <span class="tab-label">Benchmark</span>
+      <span class="tab-label">Efficiency Lab</span>
     </button>
   </nav>
 
-  <!--Shortest Route -->
-  <section class="panel-section active" id="section-route" role="tabpanel">
+  <!-- 1. DASHBOARD -->
+  <section class="panel-section active" id="section-dashboard" role="tabpanel">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Locations</div>
+        <div class="stat-value" id="dashStatLocations">--</div>
+        <div class="stat-sub">across campus</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Roads / Edges</div>
+        <div class="stat-value" id="dashStatRoads">--</div>
+        <div class="stat-sub">in road graph</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Service Requests</div>
+        <div class="stat-value" id="dashStatRequests">--</div>
+        <div class="stat-sub">seeded in DB</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Resources</div>
+        <div class="stat-value" id="dashStatResources">--</div>
+        <div class="stat-sub">staff &middot; vehicles &middot; equipment</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-header">
+        <div class="card-icon icon-gold">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h11A1.5 1.5 0 0 1 15 2.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 13.5v-11Z" fill="currentColor"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Quick Dispatch & Recent Activity</div>
+          <div class="card-desc">Pull the next urgent job immediately and audit system operations in real time.</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <button class="btn btn-primary" id="btnQuickDispatch" onclick="quickDispatchNextJob()">
+          <div class="btn-spinner"></div>
+          <span class="btn-text">Quick Dispatch Next Urgent Job</span>
+        </button>
+      </div>
+
+      <div class="result-box" id="quickDispatchResult" style="display:none; margin-bottom:20px;">
+        <div class="result-header">
+          <span class="result-header-label">Quick Dispatch Result</span>
+        </div>
+        <div class="result-body" id="quickDispatchResultBody"></div>
+      </div>
+
+      <h3 style="margin-top: 16px; margin-bottom: 8px; font-size:14px; color:var(--text-muted);">Recent Audit Activity Feed</h3>
+      <div class="result-box" id="auditFeedResult">
+        <div class="result-body" id="auditFeedBody">Connecting to API for audit logs...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. ROUTE FINDER -->
+  <section class="panel-section" id="section-route" role="tabpanel">
     <div class="card">
       <div class="card-header">
-        <div class="card-icon icon-green">
+        <div class="card-icon icon-blue">
           <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 1.5A4.5 4.5 0 0 0 3.5 6c0 2.9 3.5 7.5 4.5 8.5C9 13.5 12.5 8.9 12.5 6A4.5 4.5 0 0 0 8 1.5Zm0 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" fill="currentColor"/></svg>
         </div>
         <div>
-          <div class="card-title">Find Shortest Route</div>
+          <div class="card-title">Campus Route Finder & Reachability</div>
           <div class="card-desc">
-            Uses <strong>Dijkstra's algorithm</strong> on a weighted adjacency-list graph (58 nodes, 136 edges).
-            Road weights factor in both distance and a condition multiplier (&ge; 1.0), so a shorter road
-            with a high condition weight may still be slower than a longer one.
+            Explore shortest paths using Dijkstra's algorithm, check reachability with BFS or DFS, or view the Minimum Spanning Tree (MST) for network analysis.
           </div>
         </div>
       </div>
 
-      <div class="info-chip">Try: Source ID 1 &rarr; Destination ID 35</div>
-
       <div class="form-row">
         <div class="form-group">
-          <label for="routeSource">Source Location ID</label>
-          <input type="number" id="routeSource" placeholder="e.g. 1" min="1" max="58">
+          <label for="routeSource">From Location</label>
+          <select id="routeSource">
+            <option value="">Fetching locations from API...</option>
+          </select>
         </div>
         <div class="form-group">
-          <label for="routeDest">Destination Location ID</label>
-          <input type="number" id="routeDest" placeholder="e.g. 35" min="1" max="58">
+          <label for="routeDest">To Location</label>
+          <select id="routeDest">
+            <option value="">Fetching locations from API...</option>
+          </select>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="routeCriteria">Optimization Criteria</label>
+        <label for="routeCriteria">Optimization Criteria (for Shortest Path)</label>
         <select id="routeCriteria">
           <option value="distance">Distance (meters)</option>
           <option value="time">Estimated Travel Time</option>
         </select>
       </div>
 
-      <button class="btn btn-primary" id="btnRoute" onclick="findRoute()">
-        <div class="btn-spinner"></div>
-        <span class="btn-text">Find Route</span>
-      </button>
+      <div class="button-group" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="findRouteShortestPath()">
+          <span class="btn-text">Find Shortest Path (Dijkstra)</span>
+        </button>
+        <button class="btn" onclick="runRouteBFS()">
+          <span class="btn-text">Check Reachability (BFS)</span>
+        </button>
+        <button class="btn" onclick="runRouteDFS()">
+          <span class="btn-text">Run DFS Traversal</span>
+        </button>
+        <button class="btn" onclick="runRouteMST()">
+          <span class="btn-text">Show Minimum Spanning Tree</span>
+        </button>
+      </div>
 
       <div class="result-box" id="routeResult">
         <div class="result-header">
           <span class="result-header-label" id="routeResultLabel">Result</span>
           <span class="result-time" id="routeResultTime"></span>
         </div>
-        <div class="result-body" id="routeResultBody"></div>
+        <div class="result-body" id="routeResultBody">Select locations and click an algorithm to execute against the backend API.</div>
       </div>
     </div>
   </section>
 
-  <!-- Prioritized Requests -->
-  <section class="panel-section" id="section-requests" role="tabpanel">
+  <!-- 3. DISPATCH QUEUE -->
+  <section class="panel-section" id="section-queue" role="tabpanel">
     <div class="card">
       <div class="card-header">
-        <div class="card-icon icon-blue">
+        <div class="card-icon icon-gold">
           <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 2.5A1.5 1.5 0 0 1 3.5 1h6.086a1.5 1.5 0 0 1 1.06.44l2.915 2.914A1.5 1.5 0 0 1 14 5.415V13.5A1.5 1.5 0 0 1 12.5 15h-9A1.5 1.5 0 0 1 2 13.5v-11Zm4 5.5h4v1H6V8Zm0-2.5h4V6.5H6V5.5Z" fill="currentColor"/></svg>
         </div>
         <div>
-          <div class="card-title">Next Requests to Handle</div>
+          <div class="card-title">Dispatch Queue & Stack</div>
           <div class="card-desc">
-            Backed by a custom <strong>min-heap priority queue</strong>. Urgency ordering is
-            <code style="color:var(--red);background:rgba(248,81,73,0.1);padding:1px 5px;border-radius:3px;">high</code> &rarr;
-            <code style="color:var(--orange);background:rgba(227,179,65,0.1);padding:1px 5px;border-radius:3px;">medium</code> &rarr;
-            <code style="color:var(--text-2);background:var(--glass);padding:1px 5px;border-radius:3px;">low</code>.
-            Categories include Maintenance, Shuttle Bookings, Security, IT Support, and Lab Movements.
+            Manage incoming dispatch requests using Priority Queue (Min-Heap) or FIFO ordering, with Stack-based Undo support.
           </div>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label for="reqLimit">Limit</label>
-          <input type="number" id="reqLimit" value="10" min="1" max="300">
+          <label for="queueOrdering">Queue Ordering Mode</label>
+          <select id="queueOrdering">
+            <option value="priority">Priority Mode (Priority Queue)</option>
+            <option value="fifo">FIFO Mode (First-Come First-Served)</option>
+          </select>
         </div>
         <div class="form-group">
-          <label for="reqStatus">Status Filter</label>
-          <select id="reqStatus">
-            <option value="pending">Pending</option>
-            <option value="overdue">Overdue</option>
-            <option value="fulfilled">Fulfilled</option>
-            <option value="denied">Denied</option>
-          </select>
+          <label for="reqLimit">Limit</label>
+          <input type="number" id="reqLimit" value="10" min="1">
         </div>
       </div>
 
-      <button class="btn btn-primary" id="btnRequests" onclick="getPrioritizedRequests()">
-        <div class="btn-spinner"></div>
-        <span class="btn-text">Get Requests</span>
-      </button>
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="fetchDispatchQueue()">
+          <span class="btn-text">Dispatch Next Job</span>
+        </button>
+        <button class="btn" onclick="undoLastDispatchAction()">
+          <span class="btn-text">Undo Last Dispatch</span>
+        </button>
+      </div>
 
       <div class="result-box" id="requestsResult">
         <div class="result-header">
           <span class="result-header-label" id="requestsResultLabel">Result</span>
           <span class="result-time" id="requestsResultTime"></span>
         </div>
-        <div class="result-body" id="requestsResultBody"></div>
+        <div class="result-body" id="requestsResultBody">Click "Dispatch Next Job" to fetch pending requests from API.</div>
       </div>
     </div>
   </section>
 
-  <!-- Dispatch-->
-  <section class="panel-section" id="section-dispatch" role="tabpanel">
+  <!-- 4. OPTIMIZATION -->
+  <section class="panel-section" id="section-optimization" role="tabpanel">
     <div class="card">
       <div class="card-header">
-        <div class="card-icon icon-orange">
+        <div class="card-icon icon-blue">
           <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 2.75A.75.75 0 0 1 1.75 2h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 2.75Zm0 5A.75.75 0 0 1 1.75 7h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 1 7.75Zm0 5A.75.75 0 0 1 1.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5A.75.75 0 0 1 1 12.75Zm10.22-.97 2.25-2.25a.75.75 0 0 1 1.06 1.06l-2.25 2.25-1.28 1.28a.75.75 0 0 1-1.06 0L8.69 12.56a.75.75 0 0 1 1.06-1.06l.72.72 1.75-1.44Z" fill="currentColor"/></svg>
         </div>
         <div>
-          <div class="card-title">Assign Resources to Requests</div>
+          <div class="card-title">Optimization Engine</div>
           <div class="card-desc">
-            Runs a <strong>greedy dispatch algorithm</strong> &mdash; each pending request is matched to the
-            nearest suitable resource within the distance limit. Resource groups are tracked with a
-            <strong>Disjoint Set (Union-Find)</strong>. Unmatched requests are reported at the end.
+            Assign resources to pending requests using Greedy nearest-neighbor allocation or Dynamic Programming comparison.
           </div>
         </div>
       </div>
@@ -209,7 +264,7 @@
         <input type="number" id="dispatchMaxDist" value="1000" min="1">
       </div>
 
-      <div class="toggle-row">
+      <div class="toggle-row" style="margin-bottom:16px;">
         <label class="toggle-wrap">
           <input type="checkbox" id="dispatchOnlyAvailable" checked>
           <span class="toggle-slider"></span>
@@ -219,42 +274,67 @@
         </span>
       </div>
 
-      <button class="btn btn-primary" id="btnDispatch" onclick="runDispatch()">
-        <div class="btn-spinner"></div>
-        <span class="btn-text">Run Assignment</span>
-      </button>
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="runGreedyOptimization()">
+          <span class="btn-text">Run Greedy Assignment</span>
+        </button>
+        <button class="btn" onclick="runDPOptimization()">
+          <span class="btn-text">Run DP Optimization</span>
+        </button>
+      </div>
 
       <div class="result-box" id="dispatchResult">
         <div class="result-header">
           <span class="result-header-label" id="dispatchResultLabel">Result</span>
           <span class="result-time" id="dispatchResultTime"></span>
         </div>
-        <div class="result-body" id="dispatchResultBody"></div>
+        <div class="result-body" id="dispatchResultBody">Run Greedy or DP Optimization to view resource allocation results from API.</div>
       </div>
     </div>
   </section>
 
-  <!-- Location Search-->
+  <!-- 5. SEARCH & INDEX -->
   <section class="panel-section" id="section-search" role="tabpanel">
     <div class="card">
       <div class="card-header">
-        <div class="card-icon icon-purple">
+        <div class="card-icon icon-blue">
           <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.68 11.74a6 6 0 1 1 1.06-1.06l2.76 2.75a.75.75 0 1 1-1.06 1.06l-2.76-2.75ZM6 10.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z" fill="currentColor"/></svg>
         </div>
         <div>
-          <div class="card-title">Search Campus Locations</div>
+          <div class="card-title">Search & Index Module</div>
           <div class="card-desc">
-            Queries a custom <strong>BST / B-tree index</strong> rather than a full table scan &mdash;
-            supports name prefix and type-filtered search across all 58 locations. Leave the name
-            blank to browse all locations of a given type.
+            Perform fast ID-based lookups using Hash Table & BST indices, or filter locations by name and type.
           </div>
         </div>
       </div>
 
+      <h3 style="font-size:14px; color:var(--text-muted); margin-bottom:8px;">ID-Based Lookup</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="searchEntityId">Record ID</label>
+          <input type="text" id="searchEntityId" placeholder="e.g. 1, 12, 5">
+        </div>
+        <div class="form-group">
+          <label for="searchEntityType">Entity Type</label>
+          <select id="searchEntityType">
+            <option value="location">Locations</option>
+            <option value="request">Service Requests</option>
+            <option value="resource">Resources</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="searchByIdIndex()" style="margin-bottom:20px;">
+        <span class="btn-text">Search Record by ID</span>
+      </button>
+
+      <hr style="border:0; border-top:1px solid var(--border-color, #e2e8f0); margin: 16px 0;">
+
+      <h3 style="font-size:14px; color:var(--text-muted); margin-bottom:8px;">Location Name & Type Filter</h3>
       <div class="form-row">
         <div class="form-group">
           <label for="searchQuery">Name Contains</label>
-          <input type="text" id="searchQuery" placeholder="e.g. Jones, Balme, Great…">
+          <input type="text" id="searchQuery" placeholder="e.g. Balme, Hall, Department...">
         </div>
         <div class="form-group">
           <label for="searchType">Location Type</label>
@@ -270,53 +350,107 @@
         </div>
       </div>
 
-      <button class="btn btn-primary" id="btnSearch" onclick="searchLocations()">
-        <div class="btn-spinner"></div>
-        <span class="btn-text">Search</span>
+      <button class="btn" onclick="searchLocationsByName()">
+        <span class="btn-text">Search Locations by Name</span>
       </button>
 
-      <div class="result-box" id="searchResult">
+      <div class="result-box" id="searchResult" style="margin-top:16px;">
         <div class="result-header">
           <span class="result-header-label" id="searchResultLabel">Result</span>
           <span class="result-time" id="searchResultTime"></span>
         </div>
-        <div class="result-body" id="searchResultBody"></div>
+        <div class="result-body" id="searchResultBody">Enter search parameters to query the index API.</div>
       </div>
     </div>
   </section>
 
-  <!-- Benchmark-->
-  <section class="panel-section" id="section-benchmark" role="tabpanel">
+  <!-- 6. SORTING DEMO -->
+  <section class="panel-section" id="section-sorting" role="tabpanel">
     <div class="card">
       <div class="card-header">
-        <div class="card-icon icon-red">
-          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.75a.75.75 0 0 0-1.5 0v12.5c0 .414.336.75.75.75h13.5a.75.75 0 0 0 0-1.5H1.5V1.75ZM14.78 4.97a.75.75 0 0 0-1.06-1.06L9 8.69 6.53 6.22a.75.75 0 0 0-1.06 0L3 8.69V10h1.5l2-2 2.47 2.47a.75.75 0 0 0 1.06 0L14.78 4.97Z" fill="currentColor"/></svg>
+        <div class="card-icon icon-gold">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 11h3v3H2v-3zm5-4h3v7H7V7zm5-5h3v12h-3V2z" fill="currentColor"/></svg>
         </div>
         <div>
-          <div class="card-title">Performance Benchmark</div>
+          <div class="card-title">Sorting Algorithm Benchmark</div>
           <div class="card-desc">
-            Compares <strong>insert</strong> and <strong>search</strong> times across two internal custom data structures.
-            No Java built-ins (HashMap, TreeMap, PriorityQueue, Stack) are used in the core logic &mdash;
-            these metrics feed directly into the technical report&rsquo;s performance evidence.
+            Compare execution times of QuickSort, MergeSort, InsertionSort, and SelectionSort across custom input sizes.
           </div>
         </div>
       </div>
 
-      <div class="info-chip" style="margin-bottom: 16px;">
-        Structures covered: Hash Table &middot; BST &middot; Red-Black Tree &middot; B-Tree &middot; Heap &middot; Priority Queue
+      <div class="form-group">
+        <label for="sortingInputSize">Input Array Size (N)</label>
+        <input type="number" id="sortingInputSize" value="1000" min="10" max="100000" step="100">
       </div>
 
-      <button class="btn btn-primary" id="btnBenchmark" onclick="runBenchmark()">
-        <div class="btn-spinner"></div>
-        <span class="btn-text">Run Benchmark</span>
-      </button>
+      <div class="button-group" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="runSortAlgo('selection')">Run Selection Sort</button>
+        <button class="btn" onclick="runSortAlgo('insertion')">Run Insertion Sort</button>
+        <button class="btn" onclick="runSortAlgo('merge')">Run Merge Sort</button>
+        <button class="btn" onclick="runSortAlgo('quick')">Run Quicksort</button>
+        <button class="btn btn-primary" onclick="runAllSortAlgos()">Run All & Compare</button>
+      </div>
 
-      <div class="result-box" id="benchmarkResult">
+      <div style="margin-top:16px; background:#fafafa; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+        <canvas id="sortingChart" style="max-height:300px; width:100%;"></canvas>
+      </div>
+
+      <div class="result-box" id="sortingResult" style="margin-top:16px;">
         <div class="result-header">
-          <span class="result-header-label" id="benchmarkResultLabel">Result</span>
-          <span class="result-time" id="benchmarkResultTime"></span>
+          <span class="result-header-label" id="sortingResultLabel">Sort Results</span>
+          <span class="result-time" id="sortingResultTime"></span>
         </div>
-        <div class="result-body" id="benchmarkResultBody"></div>
+        <div class="result-body" id="sortingResultBody">Select an algorithm or click "Run All & Compare" to query `/api/sort` API.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. EFFICIENCY LAB -->
+  <section class="panel-section" id="section-efficiency" role="tabpanel">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-gold">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.75a.75.75 0 0 0-1.5 0v12.5c0 .414.336.75.75.75h13.5a.75.75 0 0 0 0-1.5H1.5V1.75ZM14.78 4.97a.75.75 0 0 0-1.06-1.06L9 8.69 6.53 6.22a.75.75 0 0 0-1.06 0L3 8.69V10h1.5l2-2 2.47 2.47a.75.75 0 0 0 1.06 0L14.78 4.97Z" fill="currentColor"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Efficiency Lab & Analytics</div>
+          <div class="card-desc">
+            Empirically benchmark algorithm runtimes vs input sizes from saved backend experiments.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="efficiencyExperiment">Select Experiment</label>
+        <select id="efficiencyExperiment">
+          <option value="search">Search Comparison (Linear vs Binary Search)</option>
+          <option value="sort">Sorting Comparison (All 4 Sorts)</option>
+          <option value="hash">Hash Table Load Factor</option>
+          <option value="tree">BST vs Red-Black Tree</option>
+          <option value="graph">Graph Algorithms (BFS/DFS/Dijkstra/MST)</option>
+        </select>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="fetchEfficiencyExperiment()">
+          <span class="btn-text">Get Saved Experiment</span>
+        </button>
+        <button class="btn" onclick="runNewEfficiencyExperiment()">
+          <span class="btn-text">Run New Experiment</span>
+        </button>
+      </div>
+
+      <div style="margin-top:16px; background:#fafafa; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+        <canvas id="efficiencyChart" style="max-height:300px; width:100%;"></canvas>
+      </div>
+
+      <div class="result-box" id="efficiencyResult" style="margin-top:16px;">
+        <div class="result-header">
+          <span class="result-header-label" id="efficiencyResultLabel">Experiment Log</span>
+          <span class="result-time" id="efficiencyResultTime"></span>
+        </div>
+        <div class="result-body" id="efficiencyResultBody">Select an experiment to query `/api/efficiency` API.</div>
       </div>
     </div>
   </section>
@@ -326,7 +460,8 @@
     <span class="footer-text">Legon Service Hub &middot; University of Ghana &middot; Local development build</span>
     <div class="algo-chips">
       <span class="algo-chip">Dijkstra</span>
-      <span class="algo-chip">BFS / DFS</span>
+      <span class="algo-chip">BFS</span>
+      <span class="algo-chip">DFS</span>
       <span class="algo-chip">Greedy</span>
       <span class="algo-chip">Min-Heap</span>
       <span class="algo-chip">BST / B-Tree</span>
