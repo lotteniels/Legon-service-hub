@@ -13,7 +13,7 @@ public class EfficiencyLabMenu {
     }
 
     public void show() {
-        System.out.println("\n--- Efficiency Lab ---");
+        System.out.println("\n  Efficiency Lab ");
         System.out.println("Running performance analysis on sorting algorithms...");
         System.out.println("This might take a few seconds.");
         

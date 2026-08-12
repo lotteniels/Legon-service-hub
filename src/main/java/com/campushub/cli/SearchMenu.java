@@ -13,7 +13,7 @@ public class SearchMenu {
     }
 
     public void show() {
-        System.out.println("\n--- Search / Indexing ---");
+        System.out.println("\n Search / Indexing ");
         System.out.println("1. Build Index (Load HashTables)");
         System.out.println("2. Search Location by ID");
         System.out.println("3. Search Request by ID");

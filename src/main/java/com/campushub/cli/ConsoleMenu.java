@@ -25,7 +25,7 @@ public class ConsoleMenu {
     public void start() {
         boolean running = true;
         while (running) {
-            System.out.println("\n=== Legon Service Hub (CLI) ===");
+            System.out.println("\n  Legon Service Hub (CLI) ");
             System.out.println("1. Dispatch / Schedule Requests");
             System.out.println("2. Route Finder (Under Construction)");
             System.out.println("3. Resource Optimization (Under Construction)");

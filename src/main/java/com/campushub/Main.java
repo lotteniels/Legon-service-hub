@@ -28,7 +28,7 @@ public class Main {
             ApiServer apiServer = new ApiServer(routeEngine, schedulingEngine, optimizationEngine, efficiencyEngine, indexingEngine);
             apiServer.start();
 
-            // Start the interactive CLI on the main thread
+            // Start the CLI thing lol
             com.campushub.cli.ConsoleMenu cli = new com.campushub.cli.ConsoleMenu(
                 routeEngine, schedulingEngine, optimizationEngine, efficiencyEngine, indexingEngine
             );

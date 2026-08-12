@@ -13,7 +13,7 @@ public class OptimizationMenu {
     }
 
     public void show() {
-        System.out.println("\n--- Resource Optimization ---");
+        System.out.println("\n  Resource Optimization  ");
         System.out.println("1. Run Optimization (Under Construction by Graphs Team)");
         System.out.println("2. Back to Main Menu");
         System.out.print("Choice: ");

@@ -13,7 +13,7 @@ public class DispatchMenu {
     }
 
     public void show() {
-        System.out.println("\n--- Dispatch / Schedule Requests ---");
+        System.out.println("\n Dispatch / Schedule Requests ");
         System.out.println("1. Dispatch Next Urgent Request (Priority)");
         System.out.println("2. Dispatch Next Oldest Request (FIFO)");
         System.out.println("3. Back to Main Menu");
