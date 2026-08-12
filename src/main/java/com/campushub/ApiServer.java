@@ -54,14 +54,18 @@ public class ApiServer {
         // Engine endpoints
         server.createContext("/api/route",      t -> handle(t, this::handleRoute));
         server.createContext("/api/schedule",   t -> handle(t, this::handleSchedule));
+        server.createContext("/api/undo",       t -> handle(t, ex -> "{\"status\": \"not_yet_available\", \"message\": \"Undo queue not yet implemented\"}"));
         server.createContext("/api/index",      t -> handle(t, this::handleIndex));
         server.createContext("/api/efficiency", t -> handle(t, this::handleEfficiency));
+        server.createContext("/api/efficiency/run", t -> handle(t, this::handleEfficiency));
+        server.createContext("/api/sort",       t -> handle(t, this::handleEfficiency)); // For now, /api/sort runs the whole efficiency lab
         server.createContext("/api/optimize",   t -> handle(t, this::handleOptimize));
 
         // Graph endpoints (waiting on Graphs team — hmmm someway oo)
         server.createContext("/api/bfs",  t -> handle(t, ex -> "{\"status\": \"not_yet_available\", \"message\": \"BFS not yet implemented by Graphs team\"}"));
         server.createContext("/api/dfs",  t -> handle(t, ex -> "{\"status\": \"not_yet_available\", \"message\": \"DFS not yet implemented by Graphs team\"}"));
         server.createContext("/api/mst",  t -> handle(t, ex -> "{\"status\": \"not_yet_available\", \"message\": \"MST not yet implemented by Graphs team\"}"));
+
 
         server.setExecutor(null);
         server.start();
