@@ -1,8 +1,9 @@
 
 function getBaseUrl() {
-  return document.getElementById('baseUrl').value.replace(/\/$/, '');
+  const val = document.getElementById('baseUrl').value.trim();
+  if (val) return val.replace(/\/$/, '');
+  return 'http://localhost:8080';
 }
-
 
 function switchTab(name) {
   document.querySelectorAll('.panel-section').forEach(s => s.classList.remove('active'));
@@ -10,12 +11,14 @@ function switchTab(name) {
     t.classList.remove('active');
     t.setAttribute('aria-selected', 'false');
   });
-  document.getElementById('section-' + name).classList.add('active');
+  const sec = document.getElementById('section-' + name);
+  if (sec) sec.classList.add('active');
   const tab = document.getElementById('tab-' + name);
-  tab.classList.add('active');
-  tab.setAttribute('aria-selected', 'true');
+  if (tab) {
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
+  }
 }
-
 
 function setLoading(btnId, loading) {
   const btn = document.getElementById(btnId);
@@ -24,267 +27,386 @@ function setLoading(btnId, loading) {
   btn.classList.toggle('loading', loading);
 }
 
-
 function showRawResult(prefix, data, isError, elapsed) {
   const box   = document.getElementById(prefix + 'Result');
   const label = document.getElementById(prefix + 'ResultLabel');
   const time  = document.getElementById(prefix + 'ResultTime');
   const body  = document.getElementById(prefix + 'ResultBody');
 
+  if (!box) return;
   box.classList.add('visible');
+  box.style.display = 'block';
   box.classList.toggle('error', !!isError);
 
-  label.textContent = isError ? '⚠ Error' : '✓ Response';
-  time.textContent  = elapsed != null ? elapsed + ' ms' : '';
-  body.textContent  = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+  if (label) label.textContent = isError ? '⚠ Error' : '✓ Response';
+  if (time)  time.textContent  = elapsed != null ? elapsed + ' ms' : '';
+  if (body)  body.textContent  = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
 }
-
-
-async function callApi(prefix, path, options) {
-  const t0 = performance.now();
-  showRawResult(prefix, 'Loading…', false, null);
-
-  try {
-    const res  = await fetch(getBaseUrl() + path, options);
-    const data = await res.json();
-    const ms   = Math.round(performance.now() - t0);
-
-    if (!res.ok) {
-      showRawResult(prefix, `Request failed (${res.status}):\n${JSON.stringify(data, null, 2)}`, true, ms);
-      return null;
-    }
-    return { data, ms };
-  } catch (err) {
-    const ms = Math.round(performance.now() - t0);
-    showRawResult(prefix, `Could not reach backend.\nIs ApiServer running on ${getBaseUrl()}?\n\n${err.message}`, true, ms);
-    return null;
-  }
-}
-
 
 async function checkHealth() {
-  const dot   = document.getElementById('statusDot');
+  const dot = document.getElementById('statusDot');
   const label = document.getElementById('statusLabel');
-  dot.className   = 'status-dot';
-  label.textContent = 'Checking…';
+  const base = getBaseUrl();
+
+  if (dot) dot.className = 'status-dot';
+  if (label) label.textContent = 'Checking…';
 
   try {
-    
-    const res = await fetch(getBaseUrl() + '/search/locations?query=Hall', { method: 'GET' });
-    if (res.ok || res.status === 400) {
-      dot.className   = 'status-dot online';
-      label.textContent = 'Online';
-    } else {
-      dot.className   = 'status-dot offline';
-      label.textContent = 'Error ' + res.status;
+    const res = await fetch(base + '/api/locations', { method: 'GET', signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      if (dot) dot.className = 'status-dot online';
+      if (label) label.textContent = 'Online';
+      return;
     }
-  } catch {
-    dot.className   = 'status-dot offline';
-    label.textContent = 'Offline';
-  }
+  } catch (err) {}
+
+  try {
+    const res = await fetch(base + '/search/locations', { method: 'GET', signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      if (dot) dot.className = 'status-dot online';
+      if (label) label.textContent = 'Online';
+      return;
+    }
+  } catch (err) {}
+
+  if (dot) dot.className = 'status-dot offline';
+  if (label) label.textContent = 'Offline';
 }
 
+// ----------------------------------------------------
+// INITIALIZATION & LOCATIONS DROPDOWN LOAD
+// ----------------------------------------------------
 
-window.addEventListener('load', () => {
-  checkHealth();
+window.addEventListener('load', async () => {
+  const baseInput = document.getElementById('baseUrl');
+  if (baseInput && !baseInput.value) {
+    baseInput.value = 'http://localhost:8080';
+  }
+  await checkHealth();
+  await loadLocationsDropdown();
+  await loadDashboardData();
 });
 
+async function loadLocationsDropdown() {
+  const srcSelect = document.getElementById('routeSource');
+  const dstSelect = document.getElementById('routeDest');
+  if (!srcSelect || !dstSelect) return;
 
-async function findRoute() {
-  const src    = Number(document.getElementById('routeSource').value);
-  const dst    = Number(document.getElementById('routeDest').value);
-  const crit   = document.getElementById('routeCriteria').value;
-
-  if (!src || !dst) {
-    showRawResult('route', 'Please enter both a source and destination location ID.', true, null);
-    return;
-  }
-  if (src === dst) {
-    showRawResult('route', 'Source and destination must be different locations.', true, null);
-    return;
-  }
-
-  setLoading('btnRoute', true);
-  const result = await callApi('route', '/routes/shortest-path', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ sourceLocationId: src, destinationLocationId: dst, optimizationCriteria: crit })
-  });
-  setLoading('btnRoute', false);
-
-  if (!result) return;
-  renderRouteResult(result.data, result.ms);
-}
-
-function renderRouteResult(data, ms) {
-  const box   = document.getElementById('routeResult');
-  const label = document.getElementById('routeResultLabel');
-  const time  = document.getElementById('routeResultTime');
-  const body  = document.getElementById('routeResultBody');
-
-  box.classList.add('visible');
-  box.classList.remove('error');
-  label.textContent = '✓ Route Found';
-  time.textContent  = ms + ' ms';
-
-  
   try {
-    const dist    = data.totalDistanceMeters ?? data.distance ?? data.totalDistance ?? '—';
-    const ttime   = data.estimatedTravelTimeMinutes ?? data.travelTime ?? data.time ?? '—';
-    const path    = data.path ?? data.locations ?? data.route ?? [];
-    const calcMs  = data.calculationTimeMs ?? data.computeTimeMs ?? '—';
+    let locs = [];
+    const res = await fetch(getBaseUrl() + '/api/locations', { method: 'GET' });
+    if (res.ok) {
+      locs = await res.json();
+    } else {
+      const alt = await fetch(getBaseUrl() + '/search/locations', { method: 'GET' });
+      if (alt.ok) locs = await alt.json();
+    }
 
-    let html = '';
+    const items = Array.isArray(locs) ? locs : (locs.locations ?? locs.results ?? locs.data ?? []);
 
-   
-    html += `Distance: ${dist} m    `;
-    html += `Est. Time: ${ttime} min    `;
-    if (calcMs !== '---') html += `Algorithm time: ${calcMs} ms`;
-    html += '\n\n';
-
-    
-    if (Array.isArray(path) && path.length > 0) {
-      html += `Path (${path.length} stops):\n`;
-      path.forEach((node, i) => {
-        const name = typeof node === 'string' ? node
-          : (node.name ?? node.locationName ?? node.id ?? JSON.stringify(node));
-        const isFirst = i === 0;
-        const isLast  = i === path.length - 1;
-        const arrow   = isLast ? '' : '  ->  ';
-        const prefix  = isFirst ? '[START] ' : (isLast ? '[ END ] ' : '        ');
-        html += prefix + name + arrow;
-        if ((i + 1) % 4 === 0 && !isLast) html += '\n        ';
+    if (Array.isArray(items) && items.length > 0) {
+      let optionsHtml = '';
+      items.forEach(l => {
+        const id = l.locationId ?? l.id;
+        const name = l.name ?? `Location #${id}`;
+        optionsHtml += `<option value="${id}">${name} (ID: ${id})</option>`;
       });
-      html += '\n';
-    }
+      srcSelect.innerHTML = optionsHtml;
+      dstSelect.innerHTML = optionsHtml;
+      if (items.length > 1) dstSelect.selectedIndex = 1;
 
-    
-    const known = new Set(['totalDistanceMeters','distance','totalDistance',
-      'estimatedTravelTimeMinutes','travelTime','time','path','locations',
-      'route','calculationTimeMs','computeTimeMs']);
-    const extra = Object.fromEntries(Object.entries(data).filter(([k]) => !known.has(k)));
-    if (Object.keys(extra).length) {
-      html += '\n' + JSON.stringify(extra, null, 2);
+      const locStat = document.getElementById('dashStatLocations');
+      if (locStat) locStat.textContent = items.length;
+    } else {
+      srcSelect.innerHTML = '<option value="">No locations returned from API</option>';
+      dstSelect.innerHTML = '<option value="">No locations returned from API</option>';
     }
-
-    body.innerHTML = '';
-    body.textContent = html;
-  } catch {
-    body.textContent = JSON.stringify(data, null, 2);
+  } catch (err) {
+    srcSelect.innerHTML = '<option value="">API Offline / Unreachable</option>';
+    dstSelect.innerHTML = '<option value="">API Offline / Unreachable</option>';
   }
 }
 
+// ----------------------------------------------------
+// PAGE 1: DASHBOARD
+// ----------------------------------------------------
 
-async function getPrioritizedRequests() {
-  const limit  = Number(document.getElementById('reqLimit').value) || 10;
-  const status = document.getElementById('reqStatus').value;
+async function loadDashboardData() {
+  const base = getBaseUrl();
 
-  setLoading('btnRequests', true);
-  const result = await callApi('requests',
-    `/requests/prioritized?limit=${limit}&status=${status}`,
-    { method: 'GET' }
-  );
-  setLoading('btnRequests', false);
+  try {
+    const resLoc = await fetch(base + '/api/locations');
+    if (resLoc.ok) {
+      const locs = await resLoc.json();
+      const items = Array.isArray(locs) ? locs : (locs.locations ?? locs.data ?? []);
+      const el = document.getElementById('dashStatLocations');
+      if (el) el.textContent = items.length || locs.total || '--';
+    }
+  } catch (e) {}
 
-  if (!result) return;
-  renderRequestsResult(result.data, result.ms);
+  try {
+    const resReq = await fetch(base + '/api/requests');
+    if (resReq.ok) {
+      const reqs = await resReq.json();
+      const items = Array.isArray(reqs) ? reqs : (reqs.requests ?? reqs.items ?? []);
+      const el = document.getElementById('dashStatRequests');
+      if (el) el.textContent = items.length || reqs.total || '--';
+    }
+  } catch (e) {}
+
+  try {
+    const resRes = await fetch(base + '/api/resources');
+    if (resRes.ok) {
+      const resources = await resRes.json();
+      const items = Array.isArray(resources) ? resources : (resources.resources ?? []);
+      const el = document.getElementById('dashStatResources');
+      if (el) el.textContent = items.length || resources.total || '--';
+    }
+  } catch (e) {}
+
+  loadAuditFeed();
 }
 
-function renderRequestsResult(data, ms) {
-  const box   = document.getElementById('requestsResult');
-  const label = document.getElementById('requestsResultLabel');
-  const time  = document.getElementById('requestsResultTime');
-  const body  = document.getElementById('requestsResultBody');
+async function quickDispatchNextJob() {
+  const box = document.getElementById('quickDispatchResult');
+  const body = document.getElementById('quickDispatchResultBody');
+  if (box) box.style.display = 'block';
+  if (body) body.textContent = 'Calling GET /api/schedule?mode=priority...';
 
-  box.classList.add('visible');
-  box.classList.remove('error');
+  setLoading('btnQuickDispatch', true);
+  try {
+    let res = await fetch(getBaseUrl() + '/api/schedule?mode=priority');
+    if (!res.ok) {
+      res = await fetch(getBaseUrl() + '/requests/prioritized?limit=1');
+    }
+    const data = await res.json();
+    setLoading('btnQuickDispatch', false);
 
-  
-  const items  = Array.isArray(data) ? data : (data.requests ?? data.items ?? data.data ?? []);
-  const total  = data.total ?? data.count ?? items.length;
+    if (!res.ok) {
+      if (body) body.textContent = `API Error (${res.status}):\n${JSON.stringify(data, null, 2)}`;
+      return;
+    }
 
-  label.textContent = `✓ ${total} request${total !== 1 ? 's' : ''}`;
-  time.textContent  = ms + ' ms';
+    if (body) body.textContent = JSON.stringify(data, null, 2);
+    loadAuditFeed();
+  } catch (err) {
+    setLoading('btnQuickDispatch', false);
+    if (body) body.textContent = `Could not reach backend API.\nError: ${err.message}`;
+  }
+}
 
-  if (!items.length) {
-    body.textContent = '(no requests returned)';
+async function loadAuditFeed() {
+  const body = document.getElementById('auditFeedBody');
+  if (!body) return;
+
+  try {
+    const res = await fetch(getBaseUrl() + '/api/audit');
+    if (!res.ok) {
+      body.textContent = `API Endpoint /api/audit returned status ${res.status}. Awaiting backend completion.`;
+      return;
+    }
+    const data = await res.json();
+    const logs = Array.isArray(data) ? data : (data.logs ?? data.auditLog ?? []);
+    if (logs.length === 0) {
+      body.textContent = 'No audit log entries returned by API.';
+      return;
+    }
+    body.textContent = JSON.stringify(logs, null, 2);
+  } catch (err) {
+    body.textContent = `Audit feed offline. Backend API endpoint /api/audit is not reachable.`;
+  }
+}
+
+// ----------------------------------------------------
+// PAGE 2: ROUTE FINDER
+// ----------------------------------------------------
+
+async function findRouteShortestPath() {
+  const from = document.getElementById('routeSource').value;
+  const to = document.getElementById('routeDest').value;
+  const crit = document.getElementById('routeCriteria').value;
+
+  if (!from || !to) {
+    showRawResult('route', 'Please select both From and To locations.', true, null);
     return;
   }
 
-  let out = '';
-  items.forEach((r, i) => {
-    const urgencyMark = r.urgency === 'high' ? '[HIGH]  ' : r.urgency === 'medium' ? '[MED]   ' : '[LOW]   ';
-    const fine = r.fineAmountGHS && r.fineAmountGHS > 0 ? `  Fine: GHS ${r.fineAmountGHS}` : '';
-    out += `${i + 1}. [#${r.requestId}] ${urgencyMark}${r.category ?? '---'}\n`;
-    out += `   Status: ${r.status ?? '---'}  |  From: ${r.sourceLocationId ?? '---'} -> To: ${r.destinationLocationId ?? '---'}\n`;
-    if (r.deadline) out += `   Deadline: ${formatDate(r.deadline)}${fine}\n`;
-    out += '\n';
-  });
-
-  body.textContent = out.trimEnd();
+  const t0 = performance.now();
+  try {
+    let res = await fetch(getBaseUrl() + `/api/route?from=${from}&to=${to}&criteria=${crit}`);
+    if (!res.ok) {
+      res = await fetch(getBaseUrl() + '/routes/shortest-path', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourceLocationId: Number(from), destinationLocationId: Number(to), optimizationCriteria: crit })
+      });
+    }
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+    showRawResult('route', data, !res.ok, ms);
+  } catch (err) {
+    showRawResult('route', `API Error: ${err.message}`, true, null);
+  }
 }
 
-async function runDispatch() {
-  const maxDistanceMeters = Number(document.getElementById('dispatchMaxDist').value) || 1000;
-  const onlyAvailable     = document.getElementById('dispatchOnlyAvailable').checked;
-
-  setLoading('btnDispatch', true);
-  const result = await callApi('dispatch', '/optimization/dispatch', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ maxDistanceMeters, onlyAvailable })
-  });
-  setLoading('btnDispatch', false);
-
-  if (!result) return;
-  renderDispatchResult(result.data, result.ms);
-}
-
-
-
-function renderDispatchResult(data, ms) {
-  const box   = document.getElementById('dispatchResult');
-  const label = document.getElementById('dispatchResultLabel');
-  const time  = document.getElementById('dispatchResultTime');
-  const body  = document.getElementById('dispatchResultBody');
-
-  box.classList.add('visible');
-  box.classList.remove('error');
-
-  const matches     = data.matches ?? data.assignments ?? data.results ?? (Array.isArray(data) ? data : []);
-  const unmatched   = data.unmatchedRequests ?? data.unmatched ?? data.unmatchedCount ?? 0;
-  const matchCount  = matches.length;
-
-  label.textContent = `✓ ${matchCount} matched · ${unmatched} unmatched`;
-  time.textContent  = ms + ' ms';
-
-  if (!matchCount) {
-    body.textContent = 'No matches found within the given constraints.\n\nUnmatched requests: ' + unmatched;
+async function runRouteBFS() {
+  const from = document.getElementById('routeSource').value;
+  if (!from) {
+    showRawResult('route', 'Please select a From location for BFS reachability.', true, null);
     return;
   }
 
-  let out = '';
-  matches.forEach((m, i) => {
-    const reqId  = m.requestId ?? m.request?.requestId ?? '?';
-    const resId  = m.resourceId ?? m.resource?.resourceId ?? '?';
-    const resName= m.resourceName ?? m.resource?.name ?? '—';
-    const dist   = m.distanceMeters ?? m.distance ?? '?';
-    const cat    = m.category ?? m.request?.category ?? '';
-    out += `${i + 1}. Request #${reqId}`;
-    if (cat) out += ` (${cat})`;
-    out += `\n   -> Resource #${resId}: ${resName}  |  Distance: ${dist} m\n\n`;
-  });
-
-  if (unmatched > 0) {
-    out += `-----------------------------------------\n`;
-    out += `Note: ${unmatched} request(s) could not be matched within the constraints.\n`;
+  const t0 = performance.now();
+  try {
+    let res = await fetch(getBaseUrl() + `/api/bfs?start=${from}`);
+    if (!res.ok) {
+      res = await fetch(getBaseUrl() + `/graph/reachable?sourceId=${from}&algorithm=bfs`);
+    }
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+    showRawResult('route', data, !res.ok, ms);
+  } catch (err) {
+    showRawResult('route', `BFS API Error: ${err.message}`, true, null);
   }
-
-  body.textContent = out.trimEnd();
 }
 
+async function runRouteDFS() {
+  const from = document.getElementById('routeSource').value;
+  if (!from) {
+    showRawResult('route', 'Please select a From location for DFS traversal.', true, null);
+    return;
+  }
 
-async function searchLocations() {
+  const t0 = performance.now();
+  try {
+    let res = await fetch(getBaseUrl() + `/api/dfs?start=${from}`);
+    if (!res.ok) {
+      res = await fetch(getBaseUrl() + `/graph/reachable?sourceId=${from}&algorithm=dfs`);
+    }
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+    showRawResult('route', data, !res.ok, ms);
+  } catch (err) {
+    showRawResult('route', `DFS API Error: ${err.message}`, true, null);
+  }
+}
+
+async function runRouteMST() {
+  const t0 = performance.now();
+  try {
+    let res = await fetch(getBaseUrl() + '/api/mst');
+    if (!res.ok) {
+      res = await fetch(getBaseUrl() + '/graph/mst');
+    }
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+    showRawResult('route', data, !res.ok, ms);
+  } catch (err) {
+    showRawResult('route', `MST API Error: ${err.message}`, true, null);
+  }
+}
+
+// ----------------------------------------------------
+// PAGE 3: DISPATCH QUEUE
+// ----------------------------------------------------
+
+async function fetchDispatchQueue() {
+  const mode = document.getElementById('queueOrdering').value;
+  const limit = document.getElementById('reqLimit').value || 10;
+  const t0 = performance.now();
+
+  try {
+    let res = await fetch(getBaseUrl() + `/api/schedule?mode=${mode}&limit=${limit}`);
+    if (!res.ok) {
+      res = await fetch(getBaseUrl() + `/requests/prioritized?limit=${limit}&status=pending`);
+    }
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+    showRawResult('requests', data, !res.ok, ms);
+  } catch (err) {
+    showRawResult('requests', `Dispatch Queue API Error: ${err.message}`, true, null);
+  }
+}
+
+async function undoLastDispatchAction() {
+  const t0 = performance.now();
+  try {
+    const res = await fetch(getBaseUrl() + '/api/undo', { method: 'POST' });
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+    showRawResult('requests', data, !res.ok, ms);
+    loadAuditFeed();
+  } catch (err) {
+    showRawResult('requests', `Undo API Error: ${err.message}`, true, null);
+  }
+}
+
+// ----------------------------------------------------
+// PAGE 4: OPTIMIZATION ENGINE
+// ----------------------------------------------------
+
+async function runGreedyOptimization() {
+  const maxDist = document.getElementById('dispatchMaxDist').value || 1000;
+  const onlyAvailable = document.getElementById('dispatchOnlyAvailable').checked;
+  const t0 = performance.now();
+
+  try {
+    let res = await fetch(getBaseUrl() + `/api/optimize?mode=greedy&maxDistance=${maxDist}&onlyAvailable=${onlyAvailable}`);
+    if (!res.ok) {
+      res = await fetch(getBaseUrl() + '/optimization/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ maxDistanceMeters: Number(maxDist), onlyAvailable })
+      });
+    }
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+    showRawResult('dispatch', data, !res.ok, ms);
+  } catch (err) {
+    showRawResult('dispatch', `Greedy Optimization API Error: ${err.message}`, true, null);
+  }
+}
+
+async function runDPOptimization() {
+  const t0 = performance.now();
+  try {
+    let res = await fetch(getBaseUrl() + '/api/optimize?mode=dp');
+    if (!res.ok) {
+      res = await fetch(getBaseUrl() + '/optimization/dp');
+    }
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+    showRawResult('dispatch', data, !res.ok, ms);
+  } catch (err) {
+    showRawResult('dispatch', `DP Optimization API Error: ${err.message}`, true, null);
+  }
+}
+
+// ----------------------------------------------------
+// PAGE 5: SEARCH & INDEX
+// ----------------------------------------------------
+
+async function searchByIdIndex() {
+  const id = document.getElementById('searchEntityId').value.trim();
+  const type = document.getElementById('searchEntityType').value;
+
+  if (!id) {
+    showRawResult('search', 'Please enter a Record ID to search.', true, null);
+    return;
+  }
+
+  const t0 = performance.now();
+  try {
+    const res = await fetch(getBaseUrl() + `/api/index?type=${type}&id=${id}`);
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+    showRawResult('search', data, !res.ok, ms);
+  } catch (err) {
+    showRawResult('search', `Index Search API Error: ${err.message}`, true, null);
+  }
+}
+
+async function searchLocationsByName() {
   const query = document.getElementById('searchQuery').value.trim();
   const type  = document.getElementById('searchType').value;
 
@@ -292,114 +414,166 @@ async function searchLocations() {
   if (query) params.set('query', query);
   if (type)  params.set('type',  type);
 
-  setLoading('btnSearch', true);
-  const result = await callApi('search', `/search/locations?${params.toString()}`, { method: 'GET' });
-  setLoading('btnSearch', false);
-
-  if (!result) return;
-  renderSearchResult(result.data, result.ms);
-}
-
-function renderSearchResult(data, ms) {
-  const box   = document.getElementById('searchResult');
-  const label = document.getElementById('searchResultLabel');
-  const time  = document.getElementById('searchResultTime');
-  const body  = document.getElementById('searchResultBody');
-
-  box.classList.add('visible');
-  box.classList.remove('error');
-
-  const items = Array.isArray(data) ? data : (data.locations ?? data.results ?? data.data ?? []);
-  label.textContent = `✓ ${items.length} location${items.length !== 1 ? 's' : ''}`;
-  time.textContent  = ms + ' ms';
-
-  if (!items.length) {
-    body.textContent = '(no locations found — try a different query or type)';
-    return;
-  }
-
- 
-  const typeColors = {
-    lecture_hall:       '#3fb950',
-    lab:                '#58a6ff',
-    shuttle_stop:       '#e3b341',
-    connector:          '#bc8cff',
-    hostel:             '#f0883e',
-    maintenance_office: '#f85149'
-  };
-
-  let out = '';
-  items.forEach((loc, i) => {
-    const dot   = typeColors[loc.type] ? '●' : '○';
-    const type  = (loc.type ?? '—').replace(/_/g, ' ');
-    out += `${i + 1}. [ID ${loc.id}] ${loc.name ?? '—'}\n`;
-    out += `   ${dot} ${type}  |  Area: ${loc.area ?? '—'}  |  Grid: ${loc.coordinates ?? '—'}\n\n`;
-  });
-
-  body.textContent = out.trimEnd();
-}
-
-
-async function runBenchmark() {
-  setLoading('btnBenchmark', true);
-  const result = await callApi('benchmark', '/efficiency/benchmark', { method: 'GET' });
-  setLoading('btnBenchmark', false);
-
-  if (!result) return;
-  renderBenchmarkResult(result.data, result.ms);
-}
-
-function renderBenchmarkResult(data, ms) {
-  const box   = document.getElementById('benchmarkResult');
-  const label = document.getElementById('benchmarkResultLabel');
-  const time  = document.getElementById('benchmarkResultTime');
-  const body  = document.getElementById('benchmarkResultBody');
-
-  box.classList.add('visible');
-  box.classList.remove('error');
-  label.textContent = '✓ Benchmark Complete';
-  time.textContent  = ms + ' ms';
-
- 
+  const t0 = performance.now();
   try {
-    const structs  = data.structures ?? data.comparison ?? data.results ?? [];
-    const dataSize = data.datasetSize ?? data.size ?? '—';
+    const res = await fetch(getBaseUrl() + `/search/locations?${params.toString()}`);
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+    showRawResult('search', data, !res.ok, ms);
+  } catch (err) {
+    showRawResult('search', `Location Search API Error: ${err.message}`, true, null);
+  }
+}
 
-    let out = `Dataset Size: ${dataSize} entries\n`;
-    out += '═'.repeat(50) + '\n\n';
+// ----------------------------------------------------
+// PAGE 6: SORTING DEMO & CHART.JS
+// ----------------------------------------------------
 
-    if (Array.isArray(structs) && structs.length) {
-      structs.forEach(s => {
-        const name   = s.name ?? s.structure ?? s.structureName ?? '—';
-        const ins    = s.insertTimeMs ?? s.insertTime ?? s.insert ?? '—';
-        const search = s.searchTimeMs ?? s.searchTime ?? s.search ?? '—';
-        out += `Structure: ${name}\n`;
-        out += `  Insert:  ${ins} ms\n`;
-        out += `  Search:  ${search} ms\n\n`;
-      });
+let sortingChartInstance = null;
 
-      if (data.comparison && !Array.isArray(data.comparison)) {
-        out += '─'.repeat(40) + '\n';
-        out += JSON.stringify(data.comparison, null, 2);
-      }
-    } else {
-      out += JSON.stringify(data, null, 2);
+async function runSortAlgo(algorithm) {
+  const size = document.getElementById('sortingInputSize').value || 1000;
+  const t0 = performance.now();
+
+  try {
+    const res = await fetch(getBaseUrl() + `/api/sort?algorithm=${algorithm}&size=${size}`);
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+
+    showRawResult('sorting', data, !res.ok, ms);
+    if (res.ok && data) {
+      updateSortingChart([data]);
     }
-
-    body.textContent = out;
-  } catch {
-    body.textContent = JSON.stringify(data, null, 2);
+  } catch (err) {
+    showRawResult('sorting', `Sort API Error (${algorithm}): ${err.message}`, true, null);
   }
 }
 
+async function runAllSortAlgos() {
+  const size = document.getElementById('sortingInputSize').value || 1000;
+  const t0 = performance.now();
 
-function formatDate(iso) {
   try {
-    return new Date(iso).toLocaleString('en-GB', {
-      day: '2-digit', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
-  } catch {
-    return iso;
+    const res = await fetch(getBaseUrl() + `/api/sort?algorithm=all&size=${size}`);
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+
+    showRawResult('sorting', data, !res.ok, ms);
+    const items = Array.isArray(data) ? data : (data.results ?? []);
+    if (items.length > 0) {
+      updateSortingChart(items);
+    }
+  } catch (err) {
+    showRawResult('sorting', `Run All Sort API Error: ${err.message}`, true, null);
   }
+}
+
+function updateSortingChart(results) {
+  const ctx = document.getElementById('sortingChart')?.getContext('2d');
+  if (!ctx) return;
+
+  const labels = results.map(r => r.algorithm || r.name || 'Algorithm');
+  const dataPoints = results.map(r => r.timeMs ?? r.timeNs ? (r.timeNs / 1000000) : 0);
+
+  if (sortingChartInstance) {
+    sortingChartInstance.destroy();
+  }
+
+  sortingChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Execution Time (ms)',
+        data: dataPoints,
+        backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444'],
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'Time (ms)' } }
+      }
+    }
+  });
+}
+
+// ----------------------------------------------------
+// PAGE 7: EFFICIENCY LAB & CHART.JS
+// ----------------------------------------------------
+
+let efficiencyChartInstance = null;
+
+async function fetchEfficiencyExperiment() {
+  const exp = document.getElementById('efficiencyExperiment').value;
+  const t0 = performance.now();
+
+  try {
+    const res = await fetch(getBaseUrl() + `/api/efficiency?experiment=${exp}`);
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+
+    showRawResult('efficiency', data, !res.ok, ms);
+    const items = Array.isArray(data) ? data : (data.results ?? []);
+    if (items.length > 0) {
+      updateEfficiencyChart(items);
+    }
+  } catch (err) {
+    showRawResult('efficiency', `Efficiency API Error (/api/efficiency?experiment=${exp}): ${err.message}`, true, null);
+  }
+}
+
+async function runNewEfficiencyExperiment() {
+  const exp = document.getElementById('efficiencyExperiment').value;
+  const t0 = performance.now();
+
+  try {
+    const res = await fetch(getBaseUrl() + `/api/efficiency/run?experiment=${exp}`, { method: 'POST' });
+    const data = await res.json();
+    const ms = Math.round(performance.now() - t0);
+
+    showRawResult('efficiency', data, !res.ok, ms);
+    const items = Array.isArray(data) ? data : (data.results ?? []);
+    if (items.length > 0) {
+      updateEfficiencyChart(items);
+    }
+  } catch (err) {
+    showRawResult('efficiency', `Run Experiment API Error (/api/efficiency/run?experiment=${exp}): ${err.message}`, true, null);
+  }
+}
+
+function updateEfficiencyChart(items) {
+  const ctx = document.getElementById('efficiencyChart')?.getContext('2d');
+  if (!ctx) return;
+
+  const labels = items.map(i => i.algorithmName ?? i.algorithm ?? `N=${i.inputSize ?? i.size ?? '—'}`);
+  const dataPoints = items.map(i => i.timeMs ?? (i.timeNs ? i.timeNs / 1000000 : 0));
+
+  if (efficiencyChartInstance) {
+    efficiencyChartInstance.destroy();
+  }
+
+  efficiencyChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Runtime (ms)',
+        data: dataPoints,
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'Time (ms)' } }
+      }
+    }
+  });
 }
