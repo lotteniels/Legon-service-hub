@@ -27,6 +27,13 @@ public class Main {
         try {
             ApiServer apiServer = new ApiServer(routeEngine, schedulingEngine, optimizationEngine, efficiencyEngine, indexingEngine);
             apiServer.start();
+
+            // Start the interactive CLI on the main thread
+            com.campushub.cli.ConsoleMenu cli = new com.campushub.cli.ConsoleMenu(
+                routeEngine, schedulingEngine, optimizationEngine, efficiencyEngine, indexingEngine
+            );
+            cli.start();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
