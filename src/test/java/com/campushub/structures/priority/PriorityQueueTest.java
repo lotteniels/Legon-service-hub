@@ -1,26 +1,45 @@
 package com.campushub.structures.priority;
 
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
 public class PriorityQueueTest {
-    public static void main(String[] args) {
-        PriorityQueue<String> pq = new PriorityQueue<>(10);
 
-        System.out.println("=== Testing Priority Queue ===\n");
+    @Test
+    public void testEnqueueDequeue() {
+        PriorityQueue<String> pq = new PriorityQueue<>(5);
+        pq.enqueue("LowPriority", 10);
+        pq.enqueue("HighPriority", 1);
+        pq.enqueue("MedPriority", 5);
 
-        System.out.println("Adding items with priorities: (Task A, 5), (Task B, 2), (Task C, 8), (Task D, 1), (Task E, 3)");
-        pq.enqueue("Task A", 5);
-        pq.enqueue("Task B", 2);
-        pq.enqueue("Task C", 8);
-        pq.enqueue("Task D", 1);
-        pq.enqueue("Task E", 3);
+        assertEquals(3, pq.size());
+        assertEquals("HighPriority", pq.dequeue(), "Lowest number is highest priority (Min-Heap)");
+        assertEquals("MedPriority", pq.dequeue());
+        assertEquals("LowPriority", pq.dequeue());
+        assertTrue(pq.isEmpty());
+    }
 
-        System.out.println("\nSize: " + pq.size() + "\n");
+    @Test
+    public void testPeek() {
+        PriorityQueue<String> pq = new PriorityQueue<>(5);
+        pq.enqueue("Test", 2);
+        assertEquals("Test", pq.peek());
+        assertEquals(1, pq.size(), "Peek should not remove the item");
+    }
 
-        System.out.println("Removing items in priority order (smallest first):");
-        while (!pq.isEmpty()) {
-            String value = pq.dequeue();
-            System.out.println("  Removed: " + value);
-        }
+    @Test
+    public void testDynamicResize() {
+        PriorityQueue<Integer> pq = new PriorityQueue<>(2);
+        pq.enqueue(1, 10);
+        pq.enqueue(2, 20);
+        pq.enqueue(3, 5); // Should trigger resize in Heap
+        assertEquals(3, pq.size());
+        assertEquals(3, pq.dequeue());
+    }
 
-        System.out.println("\n=== Test Complete ===");
+    @Test
+    public void testEmptyDequeue() {
+        PriorityQueue<Integer> pq = new PriorityQueue<>(2);
+        assertNull(pq.dequeue(), "Should return null when empty as per Heap implementation");
     }
 }

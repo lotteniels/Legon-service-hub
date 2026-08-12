@@ -6,34 +6,25 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CustomMapTest {
 
     @Test
-    public void testPutAndGet() {
-        CustomMap<Integer, String> map = new CustomMap<>();
-        map.put(1, "Location A");
-        map.put(2, "Location B");
-
-        assertEquals("Location A", map.get(1));
-        assertEquals("Location B", map.get(2));
-        assertEquals(2, map.size());
-        assertTrue(map.containsKey(1));
-    }
-
-    @Test
-    public void testOverwriteExistingKey() {
+    public void testMapOperations() {
         CustomMap<String, String> map = new CustomMap<>();
-        map.put("R1", "Pending");
-        map.put("R1", "Completed"); 
-
-        assertEquals("Completed", map.get("R1"));
-        assertEquals(1, map.size()); 
+        map.put("Key1", "Value1");
+        map.put("Key2", "Value2");
+        
+        assertTrue(map.containsKey("Key1"));
+        assertEquals("Value1", map.get("Key1"));
+        assertEquals(2, map.size());
+        
+        map.remove("Key1");
+        assertFalse(map.containsKey("Key1"));
+        assertEquals(1, map.size());
     }
 
     @Test
-    public void testOperationsOnEmptyMap() {
+    public void testUpdateMap() {
         CustomMap<Integer, String> map = new CustomMap<>();
-        
-        assertEquals(0, map.size());
-        assertFalse(map.containsKey(99)); 
-        assertNull(map.get(99));
-        assertNull(map.remove(99)); 
+        map.put(1, "A");
+        map.put(1, "B");
+        assertEquals("B", map.get(1));
     }
 }

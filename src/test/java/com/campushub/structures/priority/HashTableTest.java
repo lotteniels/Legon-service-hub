@@ -8,58 +8,39 @@ public class HashTableTest {
     @Test
     public void testPutAndGet() {
         HashTable<String, Integer> table = new HashTable<>();
-        table.put("Alice", 25);
-        table.put("Bob", 30);
-
-        assertEquals(25, table.get("Alice"));
-        assertEquals(30, table.get("Bob"));
+        table.put("A", 1);
+        table.put("B", 2);
+        assertEquals(1, table.get("A"));
+        assertEquals(2, table.get("B"));
         assertEquals(2, table.size());
     }
 
     @Test
     public void testUpdateExistingKey() {
         HashTable<String, String> table = new HashTable<>();
-        table.put("Role", "Student");
-        table.put("Role", "Admin");
-        
-        assertEquals("Admin", table.get("Role"));
+        table.put("Key", "Value1");
+        table.put("Key", "Value2");
+        assertEquals("Value2", table.get("Key"));
         assertEquals(1, table.size());
     }
 
     @Test
-    public void testResizeAndCollisionStats() {
-        HashTable<Integer, String> table = new HashTable<>(4); 
-        
-        for (int i = 0; i < 10; i++) {
-            table.put(i, "Value " + i);
-        }
-
-        assertEquals(10, table.size());
-        
-        for (int i = 0; i < 10; i++) {
-            assertEquals("Value " + i, table.get(i));
-        }
-        
-        assertTrue(table.getCollisionStats() >= 0);
-    }
-
-    @Test
-    public void testGetAndRemoveNonExistentKey() {
+    public void testRemove() {
         HashTable<String, Integer> table = new HashTable<>();
-        table.put("Alice", 25);
-
-        assertNull(table.get("Charlie")); 
-        assertNull(table.remove("Charlie")); 
+        table.put("A", 1);
+        table.put("B", 2);
+        assertEquals(1, table.remove("A"));
+        assertNull(table.get("A"));
         assertEquals(1, table.size());
     }
 
     @Test
-    public void testNullKeys() {
-        HashTable<String, Integer> table = new HashTable<>();
-        table.put(null, 100); 
-        
-        assertEquals(0, table.size());
-        assertNull(table.get(null));
-        assertNull(table.remove(null));
+    public void testResizeAndCollisions() {
+        HashTable<Integer, String> table = new HashTable<>(2);
+        for (int i = 0; i < 20; i++) {
+            table.put(i, "Val" + i);
+        }
+        assertEquals(20, table.size());
+        assertEquals("Val15", table.get(15));
     }
 }

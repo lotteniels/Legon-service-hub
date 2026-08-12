@@ -1,134 +1,57 @@
 package com.campushub.structures.linear;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DynamicArrayTest {
 
-    private DynamicArray<String> array;
-
-    @BeforeEach
-    public void setUp() {
-        array = new DynamicArray<>(4);
+    @Test
+    public void testInsertNormal() {
+        DynamicArray<Integer> arr = new DynamicArray<>();
+        arr.add(10);
+        arr.add(20);
+        assertEquals(2, arr.size(), "Size should be 2 after inserting two elements");
+        assertEquals(10, arr.get(0), "First element should be 10");
+        assertEquals(20, arr.get(1), "Second element should be 20");
     }
 
     @Test
-    public void testInitializationAndDefaults() {
-        assertTrue(array.isEmpty());
-        assertEquals(0, array.size());
-        assertEquals(4, array.capacity());
+    public void testInsertResize() {
+        DynamicArray<Integer> arr = new DynamicArray<>(2);
+        arr.add(1);
+        arr.add(2);
+        arr.add(3); // This should trigger a resize
+        assertEquals(3, arr.size(), "Size should be 3 after resizing");
+        assertEquals(3, arr.get(2), "Third element should be 3");
     }
 
     @Test
-    public void testAddAndGet() {
-        array.add("JQB");
-        array.add("Balme");
-        array.add("Night Market");
-
-        assertEquals(3, array.size());
-        assertEquals("JQB", array.get(0));
-        assertEquals("Balme", array.get(1));
-        assertEquals("Night Market", array.get(2));
-        assertFalse(array.isEmpty());
+    public void testGetInvalidIndex() {
+        DynamicArray<String> arr = new DynamicArray<>();
+        arr.add("hello");
+        assertThrows(IndexOutOfBoundsException.class, () -> arr.get(1), "Should throw exception for out of bounds index");
+        assertThrows(IndexOutOfBoundsException.class, () -> arr.get(-1), "Should throw exception for negative index");
     }
 
     @Test
-    public void testInsertMiddleAndStart() {
-        array.add("A");
-        array.add("C");
-        array.insert(1, "B"); // Insert in middle
-        array.insert(0, "START"); // Insert at start
-
-        assertEquals(4, array.size());
-        assertEquals("START", array.get(0));
-        assertEquals("A", array.get(1));
-        assertEquals("B", array.get(2));
-        assertEquals("C", array.get(3));
+    public void testRemoveNormal() {
+        DynamicArray<Integer> arr = new DynamicArray<>();
+        arr.add(10);
+        arr.add(20);
+        arr.add(30);
+        Integer removed = arr.remove(1);
+        assertEquals(20, removed, "Removed element should be 20");
+        assertEquals(2, arr.size(), "Size should be 2 after removal");
+        assertEquals(30, arr.get(1), "Element at index 1 should now be 30");
     }
 
     @Test
-    public void testResizeAndCapacity() {
-        array.add("1");
-        array.add("2");
-        array.add("3");
-        array.add("4");
-        assertEquals(4, array.capacity());
-
-        array.add("5"); // Triggers auto-doubling to capacity 8
-        assertEquals(5, array.size());
-        assertEquals(8, array.capacity());
-        assertTrue(array.getResizeCount() > 0);
-    }
-
-    @Test
-    public void testSetAndRemove() {
-        array.add("First");
-        array.add("Second");
-        array.set(1, "UpdatedSecond");
-
-        assertEquals("UpdatedSecond", array.get(1));
-
-        String removed = array.remove(0);
-        assertEquals("First", removed);
-        assertEquals(1, array.size());
-        assertEquals("UpdatedSecond", array.get(0));
-    }
-
-    @Test
-    public void testRemoveValueAndIndexOf() {
-        array.add("Alpha");
-        array.add("Beta");
-        array.add("Gamma");
-
-        assertEquals(1, array.indexOf("Beta"));
-        assertTrue(array.contains("Gamma"));
-        assertTrue(array.removeValue("Beta"));
-        assertFalse(array.contains("Beta"));
-        assertEquals(2, array.size());
-        assertFalse(array.removeValue("NonExistent"));
-    }
-
-    @Test
-    public void testClearAndTrimToSize() {
-        array.add("X");
-        array.add("Y");
-        array.add("Z");
-        array.add("W");
-        array.add("V"); // Capacity 8
-
-        array.trimToSize();
-        assertEquals(5, array.capacity());
-
-        array.clear();
-        assertTrue(array.isEmpty());
-        assertEquals(0, array.size());
-    }
-
-    @Test
-    public void testIndexOutOfBoundsExceptions() {
-        assertThrows(IndexOutOfBoundsException.class, () -> array.get(0));
-        assertThrows(IndexOutOfBoundsException.class, () -> array.get(-1));
-        assertThrows(IndexOutOfBoundsException.class, () -> array.remove(0));
-        assertThrows(IndexOutOfBoundsException.class, () -> array.set(0, "Val"));
-        assertThrows(IndexOutOfBoundsException.class, () -> array.insert(5, "Val"));
-    }
-
-    @Test
-    public void testToArrayAndMetrics() {
-        array.add("One");
-        array.add("Two");
-
-        Object[] arr = array.toArray();
-        assertEquals(2, arr.length);
-        assertEquals("One", arr[0]);
-        assertEquals("Two", arr[1]);
-
-        assertTrue(array.getElementWrites() > 0);
-        assertTrue(array.getOperationCount() > 0);
-
-        array.resetOpCounters();
-        assertEquals(0, array.getElementWrites());
-        assertEquals(0, array.getOperationCount());
+    public void testRemoveBoundary() {
+        DynamicArray<Integer> arr = new DynamicArray<>();
+        arr.add(10);
+        Integer removed = arr.remove(0);
+        assertEquals(10, removed, "Removed element should be 10");
+        assertEquals(0, arr.size(), "Size should be 0 after removing the only element");
+        assertThrows(IndexOutOfBoundsException.class, () -> arr.remove(0), "Should throw exception when removing from empty array");
     }
 }

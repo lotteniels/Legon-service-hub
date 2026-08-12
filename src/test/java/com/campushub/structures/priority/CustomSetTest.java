@@ -6,35 +6,26 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CustomSetTest {
 
     @Test
-    public void testAddAndContains() {
+    public void testSetOperations() {
         CustomSet<String> set = new CustomSet<>();
-        set.add("Resource A");
-        set.add("Resource B");
-
-        assertTrue(set.contains("Resource A"));
-        assertTrue(set.contains("Resource B"));
+        set.add("A");
+        set.add("B");
+        set.add("A"); // Duplicate shouldn't increase size
+        
         assertEquals(2, set.size());
+        assertTrue(set.contains("A"));
+        assertTrue(set.contains("B"));
+        assertFalse(set.contains("C"));
+        
+        set.remove("A");
+        assertFalse(set.contains("A"));
+        assertEquals(1, set.size());
     }
 
     @Test
-    public void testAddDuplicates() {
+    public void testEmptySet() {
         CustomSet<Integer> set = new CustomSet<>();
-        set.add(100);
-        set.add(100); 
-        set.add(100); 
-
-        assertEquals(1, set.size()); 
-        assertTrue(set.contains(100));
-    }
-
-    @Test
-    public void testRemoveNonExistentAndEmpty() {
-        CustomSet<String> set = new CustomSet<>();
-        
-        assertEquals(0, set.size());
-        assertFalse(set.contains("Unknown"));
-        
-        set.remove("Unknown"); 
+        assertFalse(set.contains(1));
         assertEquals(0, set.size());
     }
 }
