@@ -14,7 +14,7 @@ public class RouteMenu {
 
     public void show() {
         System.out.println("\n Route Finder ");
-        System.out.println("1. Find Shortest Path (Under Construction by Graphs Team)");
+        System.out.println("1. Find Cheapest Route");
         System.out.println("2. Back to Main Menu");
         System.out.print("Choice: ");
         
