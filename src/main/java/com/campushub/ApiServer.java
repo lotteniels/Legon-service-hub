@@ -54,7 +54,7 @@ public class ApiServer {
         // Engine endpoints
         server.createContext("/api/route",      t -> handle(t, this::handleRoute));
         server.createContext("/api/schedule",   t -> handle(t, this::handleSchedule));
-        server.createContext("/api/undo",       t -> handle(t, ex -> "{\"status\": \"not_yet_available\", \"message\": \"Undo queue not yet implemented\"}"));
+        server.createContext("/api/undo",       t -> handle(t, ex -> schedulingEngine.undoLastDispatch()));
         server.createContext("/api/index",      t -> handle(t, this::handleIndex));
         server.createContext("/api/efficiency", t -> handle(t, this::handleEfficiency));
         server.createContext("/api/efficiency/run", t -> handle(t, this::handleEfficiency));

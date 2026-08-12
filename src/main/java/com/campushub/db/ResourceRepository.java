@@ -2,13 +2,12 @@ package com.campushub.db;
 
 import com.campushub.model.Resource;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.campushub.structures.linear.DynamicArray;
 
 public class ResourceRepository {
 
-    public List<Resource> getAllResources() throws SQLException {
-        List<Resource> list = new ArrayList<>();
+    public DynamicArray<Resource> getAllResources() throws SQLException {
+        DynamicArray<Resource> list = new DynamicArray<>();
         String sql = "SELECT resourceId, type, name, homeLocationId, capacity, availabilityStatus FROM resources";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();

@@ -2,13 +2,12 @@ package com.campushub.db;
 
 import com.campushub.model.ServiceRequest;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.campushub.structures.linear.DynamicArray;
 
 public class RequestRepository {
 
-    public List<ServiceRequest> getAllRequests() throws SQLException {
-        List<ServiceRequest> list = new ArrayList<>();
+    public DynamicArray<ServiceRequest> getAllRequests() throws SQLException {
+        DynamicArray<ServiceRequest> list = new DynamicArray<>();
         String sql = "SELECT requestId, sourceLocationId, destinationLocationId, category, urgency, timeSubmitted, deadline, status, fineAmountGHS FROM service_requests";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();

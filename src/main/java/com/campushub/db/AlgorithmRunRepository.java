@@ -2,8 +2,7 @@ package com.campushub.db;
 
 import com.campushub.model.AlgorithmRun;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.campushub.structures.linear.DynamicArray;
 
 public class AlgorithmRunRepository {
 
@@ -20,8 +19,8 @@ public class AlgorithmRunRepository {
         }
     }
 
-    public List<AlgorithmRun> getAllRuns() throws SQLException {
-        List<AlgorithmRun> list = new ArrayList<>();
+    public DynamicArray<AlgorithmRun> getAllRuns() throws SQLException {
+        DynamicArray<AlgorithmRun> list = new DynamicArray<>();
         String sql = "SELECT runId, algorithmName, inputSize, timeNs, memoryKb, dateRun FROM algorithm_runs";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();

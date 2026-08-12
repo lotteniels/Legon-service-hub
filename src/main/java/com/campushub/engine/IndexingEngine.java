@@ -7,8 +7,9 @@ import com.campushub.model.Location;
 import com.campushub.model.ServiceRequest;
 import com.campushub.model.Resource;
 import com.campushub.structures.priority.HashTable;
+import com.campushub.structures.tree.BST;
 import java.sql.SQLException;
-import java.util.List;
+import com.campushub.structures.linear.DynamicArray;
 
 public class IndexingEngine {
 
@@ -16,9 +17,11 @@ public class IndexingEngine {
     private final RequestRepository requestRepository;
     private final ResourceRepository resourceRepository;
 
-    private HashTable<Integer, Location> locationIndex;
+    private BST locationIndex;
     private HashTable<Integer, ServiceRequest> requestIndex;
     private HashTable<Integer, Resource> resourceIndex;
+
+    private int locationCount;
 
     public IndexingEngine() {
         this.locationRepository = new LocationRepository();
@@ -29,28 +32,36 @@ public class IndexingEngine {
     // Build all three indexes from the database
     public String buildIndex() {
         try {
-            locationIndex = new HashTable<>();
+            locationIndex = new BST();
             requestIndex = new HashTable<>();
             resourceIndex = new HashTable<>();
 
-            List<Location> locations = locationRepository.getAllLocations();
-            for (Location loc : locations) {
-                locationIndex.put(loc.getLocationId(), loc);
+            DynamicArray<Location> locations = locationRepository.getAllLocations();
+            locationCount = locations.size();
+            for (int i = 0; i < locations.size(); i++) {
+                Location loc = locations.get(i);
+                String locJson = String.format(
+                    "{\"locationId\": %d, \"name\": \"%s\", \"area\": \"%s\", \"type\": \"%s\", \"coordinates\": \"%s\"}",
+                    loc.getLocationId(), loc.getName(), loc.getArea(), loc.getType(), loc.getCoordinates()
+                );
+                locationIndex.insert(loc.getLocationId(), locJson);
             }
 
-            List<ServiceRequest> requests = requestRepository.getAllRequests();
-            for (ServiceRequest req : requests) {
+            DynamicArray<ServiceRequest> requests = requestRepository.getAllRequests();
+            for (int i = 0; i < requests.size(); i++) {
+                ServiceRequest req = requests.get(i);
                 requestIndex.put(req.getRequestId(), req);
             }
 
-            List<Resource> resources = resourceRepository.getAllResources();
-            for (Resource res : resources) {
+            DynamicArray<Resource> resources = resourceRepository.getAllResources();
+            for (int i = 0; i < resources.size(); i++) {
+                Resource res = resources.get(i);
                 resourceIndex.put(res.getResourceId(), res);
             }
 
             return String.format(
                 "{\"status\": \"Index built\", \"locations\": %d, \"requests\": %d, \"resources\": %d}",
-                locationIndex.size(), requestIndex.size(), resourceIndex.size()
+                locationCount, requestIndex.size(), resourceIndex.size()
             );
 
         } catch (SQLException e) {
@@ -64,12 +75,9 @@ public class IndexingEngine {
 
         switch (type.toLowerCase()) {
             case "location": {
-                Location loc = locationIndex.get(id);
-                if (loc == null) return "{\"error\": \"Location " + id + " not found.\"}";
-                return String.format(
-                    "{\"locationId\": %d, \"name\": \"%s\", \"area\": \"%s\", \"type\": \"%s\", \"coordinates\": \"%s\"}",
-                    loc.getLocationId(), loc.getName(), loc.getArea(), loc.getType(), loc.getCoordinates()
-                );
+                String locJson = locationIndex.search(id);
+                if (locJson == null) return "{\"error\": \"Location " + id + " not found.\"}";
+                return locJson;
             }
             case "request": {
                 ServiceRequest req = requestIndex.get(id);
@@ -92,4 +100,5 @@ public class IndexingEngine {
         }
     }
 }
+
 

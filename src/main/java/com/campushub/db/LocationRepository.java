@@ -2,13 +2,12 @@ package com.campushub.db;
 
 import com.campushub.model.Location;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.campushub.structures.linear.DynamicArray;
 
 public class LocationRepository {
 
-    public List<Location> getAllLocations() throws SQLException {
-        List<Location> list = new ArrayList<>();
+    public DynamicArray<Location> getAllLocations() throws SQLException {
+        DynamicArray<Location> list = new DynamicArray<>();
         String sql = "SELECT locationId, name, area, type, coordinates FROM locations";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();

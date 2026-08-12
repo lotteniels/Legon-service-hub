@@ -2,8 +2,7 @@ package com.campushub.db;
 
 import com.campushub.model.AuditEvent;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.campushub.structures.linear.DynamicArray;
 
 public class AuditEventRepository {
 
@@ -18,8 +17,8 @@ public class AuditEventRepository {
         }
     }
 
-    public List<AuditEvent> getAllEvents() throws SQLException {
-        List<AuditEvent> list = new ArrayList<>();
+    public DynamicArray<AuditEvent> getAllEvents() throws SQLException {
+        DynamicArray<AuditEvent> list = new DynamicArray<>();
         String sql = "SELECT eventId, eventType, description, timestamp FROM audit_events ORDER BY eventId DESC";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
