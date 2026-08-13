@@ -1,11 +1,17 @@
 
 function getBaseUrl() {
-  const val = document.getElementById('baseUrl').value.trim();
-  if (val) return val.replace(/\/$/, '');
-  return 'http://localhost:8080';
+  const el = document.getElementById('baseUrl');
+  if (el && el.value.trim()) return el.value.trim().replace(/\/$/, '');
+  return window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file:') 
+    ? window.location.origin 
+    : 'http://localhost:8080';
 }
 
-function switchTab(name) {
+function switchTab(name, event) {
+  if (event && typeof event.preventDefault === 'function') {
+    event.preventDefault();
+  }
+
   document.querySelectorAll('.panel-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => {
     t.classList.remove('active');
@@ -18,6 +24,14 @@ function switchTab(name) {
     tab.classList.add('active');
     tab.setAttribute('aria-selected', 'true');
   }
+}
+
+function enforceButtonDefaults() {
+  document.querySelectorAll('button').forEach((button) => {
+    if (!button.type) {
+      button.type = 'button';
+    }
+  });
 }
 
 function setLoading(btnId, loading) {
@@ -78,14 +92,26 @@ async function checkHealth() {
 // ----------------------------------------------------
 
 window.addEventListener('load', async () => {
+  enforceButtonDefaults();
+
   const baseInput = document.getElementById('baseUrl');
-  if (baseInput && !baseInput.value) {
-    baseInput.value = 'http://localhost:8080';
+  if (baseInput) {
+    if (!baseInput.value) {
+      baseInput.value = 'http://localhost:8080';
+    }
+    // Auto-check health when backend URL is updated or typed
+    baseInput.addEventListener('input', checkHealth);
+    baseInput.addEventListener('change', checkHealth);
   }
   await checkHealth();
   await loadLocationsDropdown();
   await loadDashboardData();
+
+  // Auto-ping every 15 seconds to keep health status updated
+  setInterval(checkHealth, 15000);
 });
+
+enforceButtonDefaults();
 
 async function loadLocationsDropdown() {
   const srcSelect = document.getElementById('routeSource');

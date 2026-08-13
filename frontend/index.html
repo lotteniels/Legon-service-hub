@@ -23,20 +23,18 @@
       <h1>Legon Service Hub</h1>
       <p class="subtitle">Campus Operations Dashboard &mdash; University of Ghana, Legon</p>
     </div>
-    <div class="status-bar">
-      <div class="status-dot" id="statusDot"></div>
-      <span class="status-label" id="statusLabel">Checking…</span>
+    <div class="status-bar" style="display:flex; align-items:center; gap:12px;">
+      <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted);">
+        <label for="baseUrl" style="font-weight:500;">Backend API:</label>
+        <input type="text" id="baseUrl" value="http://localhost:8080" placeholder="http://localhost:8080" style="padding:4px 8px; font-size:12px; border:1px solid #cbd5e1; border-radius:4px; width:160px;">
+      </div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <div class="status-dot" id="statusDot"></div>
+        <span class="status-label" id="statusLabel">Checking…</span>
+      </div>
     </div>
   </header>
 
-  <!--Backend URL Config Strip-->
-  <div class="config-strip">
-    <label for="baseUrl">Backend URL</label>
-    <input type="text" id="baseUrl" value="" placeholder="e.g. http://localhost:8080" spellcheck="false">
-    <button class="btn btn-primary" onclick="checkHealth()" id="pingBtn" style="padding:6px 14px;font-size:12px;">
-      <span class="btn-text">Ping</span>
-    </button>
-  </div>
 
   <!--Navigation Tabs (6 Tabs)-->
   <nav class="nav-tabs" role="tablist">
