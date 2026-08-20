@@ -94,7 +94,7 @@ public class ApiServer {
         // Efficiency lab + CSV export
         server.createContext("/api/efficiency",     t -> handle(t, this::handleEfficiency));
         server.createContext("/api/efficiency/run", t -> handle(t, this::handleEfficiency));
-        server.createContext("/api/sort",            t -> handle(t, this::handleEfficiency));
+        server.createContext("/api/sort",            t -> handle(t, this::handleSort));
         server.createContext("/api/export",          t -> handle(t, this::handleExport));
 
         // Optimisation (Greedy + DP)
@@ -336,8 +336,15 @@ public class ApiServer {
     }
 
     // =========================================================================
-    // Efficiency lab handlers
+    // Sorting demo & Efficiency lab handlers
     // =========================================================================
+
+    private String handleSort(HttpExchange t) {
+        HashTable<String, String> params = parseQuery(t.getRequestURI());
+        String algorithm = params.get("algorithm");
+        int size = parseInt(params.get("size"), 1000);
+        return efficiencyEngine.runSortDemo(algorithm, size);
+    }
 
     private String handleEfficiency(HttpExchange t) {
         return efficiencyEngine.analyzeEfficiency();

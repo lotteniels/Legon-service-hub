@@ -28,7 +28,7 @@ function switchTab(name, event) {
 
 function enforceButtonDefaults() {
   document.querySelectorAll('button').forEach((button) => {
-    if (!button.type) {
+    if (!button.hasAttribute('type')) {
       button.type = 'button';
     }
   });
@@ -434,18 +434,35 @@ async function searchByIdIndex() {
 
 async function searchLocationsByName() {
   const query = document.getElementById('searchQuery').value.trim();
-  const type  = document.getElementById('searchType').value;
-
-  const params = new URLSearchParams();
-  if (query) params.set('query', query);
-  if (type)  params.set('type',  type);
+  const type = document.getElementById('searchType').value;
 
   const t0 = performance.now();
   try {
-    const res = await fetch(getBaseUrl() + `/search/locations?${params.toString()}`);
-    const data = await res.json();
+    const res = await fetch(getBaseUrl() + '/api/locations');
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const raw = await res.json();
+    const items = Array.isArray(raw) ? raw : (raw.locations ?? raw.results ?? raw.data ?? []);
+
+    const filtered = items.filter((loc) => {
+      const name = (loc.name ?? '').toString().toLowerCase();
+      const locType = (loc.type ?? '').toString().toLowerCase();
+      const matchesQuery = !query || name.includes(query.toLowerCase());
+      const matchesType = !type || locType === type;
+      return matchesQuery && matchesType;
+    });
+
     const ms = Math.round(performance.now() - t0);
-    showRawResult('search', data, !res.ok, ms);
+    const payload = filtered.length > 0 ? filtered : {
+      status: 'no_results',
+      query: query || '(empty)',
+      type: type || 'any',
+      matches: 0
+    };
+
+    showRawResult('search', payload, false, ms);
   } catch (err) {
     showRawResult('search', `Location Search API Error: ${err.message}`, true, null);
   }
@@ -499,7 +516,11 @@ function updateSortingChart(results) {
   if (!ctx) return;
 
   const labels = results.map(r => r.algorithm || r.name || 'Algorithm');
-  const dataPoints = results.map(r => r.timeMs ?? r.timeNs ? (r.timeNs / 1000000) : 0);
+  const dataPoints = results.map(r => {
+    const value = r.timeMs ?? r.timeNs ?? 0;
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : 0;
+  });
 
   if (sortingChartInstance) {
     sortingChartInstance.destroy();
@@ -532,7 +553,11 @@ function updateSortingChart(results) {
 
 let efficiencyChartInstance = null;
 
-async function fetchEfficiencyExperiment() {
+async function fetchEfficiencyExperiment(event) {
+  if (event && typeof event.preventDefault === 'function') {
+    event.preventDefault();
+  }
+
   const exp = document.getElementById('efficiencyExperiment').value;
   const t0 = performance.now();
 
@@ -551,7 +576,11 @@ async function fetchEfficiencyExperiment() {
   }
 }
 
-async function runNewEfficiencyExperiment() {
+async function runNewEfficiencyExperiment(event) {
+  if (event && typeof event.preventDefault === 'function') {
+    event.preventDefault();
+  }
+
   const exp = document.getElementById('efficiencyExperiment').value;
   const t0 = performance.now();
 

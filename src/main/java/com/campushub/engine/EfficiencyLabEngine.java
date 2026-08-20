@@ -85,6 +85,66 @@ public class EfficiencyLabEngine {
         return json.toString();
     }
 
+    public String runSortDemo(String algorithm, int size) {
+        int safeSize = Math.max(1, size);
+        String normalized = algorithm == null ? "all" : algorithm.trim().toLowerCase();
+
+        if ("all".equals(normalized)) {
+            StringBuilder json = new StringBuilder("[");
+            boolean[] first = {true};
+            String[] names = {"selection", "insertion", "merge", "quick"};
+
+            for (String name : names) {
+                if (!first[0]) json.append(',');
+                json.append(runSingleSort(name, safeSize));
+                first[0] = false;
+            }
+            json.append(']');
+            return json.toString();
+        }
+
+        return runSingleSort(normalized, safeSize);
+    }
+
+    private String runSingleSort(String algorithm, int size) {
+        int[] data = generateRandomArray(size);
+        long start = System.nanoTime();
+        int[] sorted;
+
+        switch (algorithm) {
+            case "selection":
+                sorted = selectionSort.selectionSort(data.clone());
+                break;
+            case "insertion":
+                sorted = insertionSort.insertionSort(data.clone());
+                break;
+            case "merge":
+                sorted = mergeSort.mergeSort(data.clone());
+                break;
+            case "quick":
+                sorted = quickSort.quickSort(data.clone());
+                break;
+            default:
+                sorted = mergeSort.mergeSort(data.clone());
+                algorithm = "merge";
+                break;
+        }
+
+        long elapsedNs = System.nanoTime() - start;
+        double elapsedMs = elapsedNs / 1_000_000.0;
+        String title = switch (algorithm) {
+            case "selection" -> "SelectionSort";
+            case "insertion" -> "InsertionSort";
+            case "merge" -> "MergeSort";
+            case "quick" -> "QuickSort";
+            default -> "MergeSort";
+        };
+
+        return String.format(
+                "{\"algorithm\":\"%s\",\"inputSize\":%d,\"timeMs\":%.3f,\"sorted\":%s}",
+                title, size, elapsedMs, java.util.Arrays.toString(sorted));
+    }
+
     // -------------------------------------------------------------------------
     // Experiment groups
     // -------------------------------------------------------------------------
