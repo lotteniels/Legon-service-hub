@@ -171,6 +171,17 @@ async function loadDashboardData() {
   } catch (e) {}
 
   try {
+    const resGraph = await fetch(base + '/api/route?mode=summary');
+    if (resGraph.ok) {
+      const summary = await resGraph.json();
+      const text = summary.result ?? summary.summary ?? summary;
+      const match = String(text).match(/(\d+)\s+roads?/i);
+      const el = document.getElementById('dashStatRoads');
+      if (el && match) el.textContent = match[1];
+    }
+  } catch (e) {}
+
+  try {
     const resReq = await fetch(base + '/api/requests');
     if (resReq.ok) {
       const reqs = await resReq.json();
@@ -259,7 +270,7 @@ async function findRouteShortestPath() {
 
   const t0 = performance.now();
   try {
-    let res = await fetch(getBaseUrl() + `/api/route?from=${from}&to=${to}&criteria=${crit}`);
+    let res = await fetch(getBaseUrl() + `/api/route?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&criteria=${encodeURIComponent(crit)}`);
     if (!res.ok) {
       res = await fetch(getBaseUrl() + '/routes/shortest-path', {
         method: 'POST',
@@ -377,7 +388,7 @@ async function runGreedyOptimization() {
   const t0 = performance.now();
 
   try {
-    let res = await fetch(getBaseUrl() + `/api/optimize?mode=greedy&maxDistance=${maxDist}&onlyAvailable=${onlyAvailable}`);
+    let res = await fetch(getBaseUrl() + `/api/optimize?mode=greedy&maxDistance=${encodeURIComponent(maxDist)}&onlyAvailable=${onlyAvailable}`);
     if (!res.ok) {
       res = await fetch(getBaseUrl() + '/optimization/dispatch', {
         method: 'POST',
@@ -396,7 +407,7 @@ async function runGreedyOptimization() {
 async function runDPOptimization() {
   const t0 = performance.now();
   try {
-    let res = await fetch(getBaseUrl() + '/api/optimize?mode=dp');
+    let res = await fetch(getBaseUrl() + '/api/optimize?mode=dp&depot=1&shift=240');
     if (!res.ok) {
       res = await fetch(getBaseUrl() + '/optimization/dp');
     }
@@ -562,7 +573,7 @@ async function fetchEfficiencyExperiment(event) {
   const t0 = performance.now();
 
   try {
-    const res = await fetch(getBaseUrl() + `/api/efficiency?experiment=${exp}`);
+    const res = await fetch(getBaseUrl() + `/api/efficiency?experiment=${encodeURIComponent(exp)}`);
     const data = await res.json();
     const ms = Math.round(performance.now() - t0);
 
@@ -585,7 +596,7 @@ async function runNewEfficiencyExperiment(event) {
   const t0 = performance.now();
 
   try {
-    const res = await fetch(getBaseUrl() + `/api/efficiency/run?experiment=${exp}`, { method: 'POST' });
+    const res = await fetch(getBaseUrl() + `/api/efficiency/run?experiment=${encodeURIComponent(exp)}`, { method: 'POST' });
     const data = await res.json();
     const ms = Math.round(performance.now() - t0);
 

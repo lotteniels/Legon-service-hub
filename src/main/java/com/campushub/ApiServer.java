@@ -8,6 +8,7 @@ import com.campushub.db.*;
 import com.campushub.engine.*;
 import com.campushub.model.*;
 import com.campushub.structures.graph.Graph;
+import com.campushub.structures.graph.Graph.WeightMode;
 import com.campushub.structures.priority.HashTable;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -226,7 +227,9 @@ public class ApiServer {
             default: {
                 int from = parseInt(params.get("from"), 1);
                 int to   = parseInt(params.get("to"),  35);
-                return jsonString(routeEngine.calculateShortestPath(from, to));
+                WeightMode weight = "distance".equalsIgnoreCase(params.get("criteria"))
+                        ? WeightMode.DISTANCE : WeightMode.TIME_ADJUSTED;
+                return jsonString(routeEngine.calculateShortestPath(from, to, weight));
             }
         }
     }
@@ -347,7 +350,18 @@ public class ApiServer {
     }
 
     private String handleEfficiency(HttpExchange t) {
-        return efficiencyEngine.analyzeEfficiency();
+        HashTable<String, String> params = parseQuery(t.getRequestURI());
+        String experiment = params.get("experiment");
+        if (experiment == null || experiment.isBlank()) {
+            return efficiencyEngine.analyzeEfficiency();
+        }
+        try {
+            return "POST".equalsIgnoreCase(t.getRequestMethod())
+                    ? efficiencyEngine.runExperiment(experiment)
+                    : efficiencyEngine.getSavedExperiment(experiment);
+        } catch (IllegalArgumentException e) {
+            return "{\"error\":\"Unknown efficiency experiment\"}";
+        }
     }
 
     private String handleExport(HttpExchange t) {
@@ -361,7 +375,15 @@ public class ApiServer {
     // =========================================================================
 
     private String handleOptimize(HttpExchange t) {
-        return jsonString(optimizationEngine.optimizeResources());
+        HashTable<String, String> params = parseQuery(t.getRequestURI());
+        if ("dp".equalsIgnoreCase(params.get("mode"))) {
+            int shift = parseInt(params.get("shift"), OptimizationEngine.DEFAULT_SHIFT_MINUTES);
+            int depot = parseInt(params.get("depot"), 1);
+            return jsonString(optimizationEngine.planShift(depot, shift));
+        }
+        double maxDistance = parseDouble(params.get("maxDistance"), Double.POSITIVE_INFINITY);
+        boolean onlyAvailable = !"false".equalsIgnoreCase(params.get("onlyAvailable"));
+        return jsonString(optimizationEngine.optimizeResources(maxDistance, onlyAvailable));
     }
 
     /**
@@ -436,6 +458,12 @@ public class ApiServer {
     private int parseInt(String s, int defaultVal) {
         if (s == null) return defaultVal;
         try { return Integer.parseInt(s); }
+        catch (NumberFormatException e) { return defaultVal; }
+    }
+
+    private double parseDouble(String s, double defaultVal) {
+        if (s == null) return defaultVal;
+        try { return Double.parseDouble(s); }
         catch (NumberFormatException e) { return defaultVal; }
     }
 

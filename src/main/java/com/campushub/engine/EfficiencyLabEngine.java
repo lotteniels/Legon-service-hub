@@ -85,6 +85,89 @@ public class EfficiencyLabEngine {
         return json.toString();
     }
 
+    /** Runs only the selected experiment family and persists fresh measurements. */
+    public String runExperiment(String experiment) {
+        StringBuilder json = new StringBuilder("[");
+        boolean[] first = {true};
+        appendExperiment(experiment, json, first);
+        json.append("]");
+        exportToCsv();
+        return json.toString();
+    }
+
+    /** Returns persisted measurements belonging to the selected experiment family. */
+    public String getSavedExperiment(String experiment) {
+        String prefix = prefixFor(experiment);
+        StringBuilder json = new StringBuilder("[");
+        boolean first = true;
+        try {
+            var runs = runRepository.getAllRuns();
+            for (int index = 0; index < runs.size(); index++) {
+                AlgorithmRun run = runs.get(index);
+                if (!matchesPrefix(run.getAlgorithmName(), prefix)) {
+                    continue;
+                }
+                if (!first) json.append(',');
+                json.append(String.format(
+                        "{\"algorithm\":\"%s\",\"inputSize\":%d,\"timeNs\":%d,\"memoryKb\":%d,\"date\":\"%s\"}",
+                        escapeJson(run.getAlgorithmName()), run.getInputSize(), run.getTimeNs(),
+                        run.getMemoryKb(), escapeJson(run.getDateRun())));
+                first = false;
+            }
+        } catch (SQLException e) {
+            return "{\"error\":\"Unable to load saved experiment\"}";
+        }
+        return json.append(']').toString();
+    }
+
+    private void appendExperiment(String experiment, StringBuilder json, boolean[] first) {
+        switch (normaliseExperiment(experiment)) {
+            case "search": runSearchExperiments(json, first); break;
+            case "sort":   runSortingExperiments(json, first); break;
+            case "hash":   runHashTableExperiments(json, first); break;
+            case "tree":   runTreeExperiments(json, first); break;
+            case "graph":  runGraphExperiments(json, first); break;
+            default: throw new IllegalArgumentException("Unknown experiment: " + experiment);
+        }
+    }
+
+    private String prefixFor(String experiment) {
+        return switch (normaliseExperiment(experiment)) {
+            case "search" -> "Search";
+            case "sort" -> "Sort";
+            case "hash" -> "HashTable_";
+            case "tree" -> "BST_";
+            case "graph" -> "Graph";
+            default -> throw new IllegalArgumentException("Unknown experiment: " + experiment);
+        };
+    }
+
+    private boolean matchesPrefix(String algorithm, String prefix) {
+        if ("Search".equals(prefix)) {
+            return "LinearSearch".equals(algorithm) || "BinarySearch".equals(algorithm);
+        }
+        if ("Sort".equals(prefix)) {
+            return algorithm.endsWith("Sort");
+        }
+        if ("BST_".equals(prefix)) {
+            return algorithm.startsWith("BST_") || algorithm.startsWith("RedBlackTree_");
+        }
+        if ("Graph".equals(prefix)) {
+            return algorithm.startsWith("BFS_") || algorithm.startsWith("DFS_")
+                    || algorithm.startsWith("Dijkstra_") || algorithm.startsWith("Prim_")
+                    || algorithm.startsWith("Kruskal_");
+        }
+        return algorithm.startsWith(prefix);
+    }
+
+    private String normaliseExperiment(String experiment) {
+        return experiment == null ? "" : experiment.trim().toLowerCase();
+    }
+
+    private String escapeJson(String value) {
+        return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
     public String runSortDemo(String algorithm, int size) {
         int safeSize = Math.max(1, size);
         String normalized = algorithm == null ? "all" : algorithm.trim().toLowerCase();

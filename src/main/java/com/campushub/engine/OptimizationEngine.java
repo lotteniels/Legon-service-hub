@@ -6,6 +6,7 @@ import com.campushub.algorithms.optimization.ServiceData;
 import com.campushub.model.Resource;
 import com.campushub.model.ServiceRequest;
 import com.campushub.structures.graph.Graph;
+import com.campushub.structures.graph.Graph.WeightMode;
 import com.campushub.structures.linear.DynamicArray;
 
 import java.nio.file.Path;
@@ -56,13 +57,20 @@ public class OptimizationEngine {
      * CLI.
      */
     public String optimizeResources() {
-        Graph roads = routes.graph();
+        return optimizeResources(Double.POSITIVE_INFINITY, true);
+    }
+
+    /** Greedy dispatch with web-configurable distance and availability policies. */
+    public String optimizeResources(double maxDistanceMeters, boolean onlyAvailable) {
+        Graph roads = Graph.fromSeedData(seedDirectory, WeightMode.DISTANCE);
         DynamicArray<ServiceRequest> waiting = ServiceData.outstanding(requests());
         if (waiting.isEmpty()) {
             return "No outstanding requests to assign";
         }
 
-        GreedyAssigner.Result dispatch = GreedyAssigner.assign(roads, waiting, resources());
+        GreedyAssigner.Result dispatch = GreedyAssigner.assign(
+            roads, waiting, resources(), GreedyAssigner.ANY_AVAILABLE,
+            onlyAvailable, maxDistanceMeters);
         return String.format(
                 "Assigned %d of %d outstanding requests to %d resources | total travel %.2f min, "
                         + "average %.2f min | %d shortest-path searches, %d unassigned",

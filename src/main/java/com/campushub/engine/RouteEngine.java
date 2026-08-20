@@ -46,7 +46,12 @@ public class RouteEngine {
      * when a location is unknown or no route exists rather than inventing a path.
      */
     public String calculateShortestPath(int sourceId, int destinationId) {
-        Graph roads = graph();
+        return calculateShortestPath(sourceId, destinationId, weightMode);
+    }
+
+    /** The cheapest route using the requested road cost. */
+    public String calculateShortestPath(int sourceId, int destinationId, WeightMode mode) {
+        Graph roads = graphFor(mode);
         if (!roads.hasLocation(sourceId)) {
             return "Unknown location: " + sourceId;
         }
@@ -71,6 +76,14 @@ public class RouteEngine {
         line.append(String.format(" | %.2f %s over %d road(s)", search.costTo(destinationId),
                 unitOf(weightMode), route.length - 1));
         return line.toString();
+    }
+
+    /** Reuses the default graph and lazily builds alternate cost views when needed. */
+    private Graph graphFor(WeightMode mode) {
+        if (mode == null || mode == weightMode) {
+            return graph();
+        }
+        return Graph.fromSeedData(seedDirectory, mode);
     }
 
     /** The fewest-roads route, which often differs from the cheapest one. */

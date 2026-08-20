@@ -229,6 +229,13 @@ public final class GreedyAssigner {
      */
     public static Result assign(Graph graph, DynamicArray<ServiceRequest> requests,
                                 DynamicArray<Resource> resources, Eligibility eligible) {
+        return assign(graph, requests, resources, eligible, true, Double.POSITIVE_INFINITY);
+    }
+
+    /** Assigns with explicit availability and maximum travel-cost policies. */
+    public static Result assign(Graph graph, DynamicArray<ServiceRequest> requests,
+                                DynamicArray<Resource> resources, Eligibility eligible,
+                                boolean requireAvailable, double maxTravelCost) {
         if (graph == null || requests == null || resources == null || eligible == null) {
             throw new IllegalArgumentException("graph, requests, resources and rule are required");
         }
@@ -280,7 +287,8 @@ public final class GreedyAssigner {
 
             for (int index = 0; index < resourceCount; index++) {
                 Resource resource = resources.get(index);
-                if (remainingCapacity[index] <= 0 || !ServiceData.isAvailable(resource)) {
+                if (remainingCapacity[index] <= 0
+                    || (requireAvailable && !ServiceData.isAvailable(resource))) {
                     continue;
                 }
                 if (!eligible.allows(request, resource)) {
@@ -298,6 +306,9 @@ public final class GreedyAssigner {
                 }
                 double cost = table[destinationSlot];
                 if (cost == Dijkstra.UNREACHABLE) {
+                    continue;
+                }
+                if (cost > maxTravelCost) {
                     continue;
                 }
                 // Resources are scanned in list order, so a strict comparison keeps the
