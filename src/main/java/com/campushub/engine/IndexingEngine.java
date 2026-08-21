@@ -13,6 +13,7 @@ import com.campushub.structures.tree.RedBlackTree;
 
 import java.sql.SQLException;
 import com.campushub.structures.linear.DynamicArray;
+import com.campushub.util.TeamParameters;
 
 /**
  * Indexing engine (M6).
@@ -69,7 +70,7 @@ public class IndexingEngine {
             locationRbt    = new RedBlackTree();
             // BTree minimum degree t=3 gives nodes of 2–5 keys — a reasonable
             // page size for 58 locations, matching the brief's B-tree page simulation.
-            locationBTree  = new BTree<>(3);
+            locationBTree  = new BTree<>(TeamParameters.treeMinDegree());
 
             DynamicArray<Location> locations = locationRepository.getAllLocations();
             locationCount = locations.size();

@@ -4,6 +4,7 @@ import com.campushub.algorithms.graph.Dijkstra;
 import com.campushub.model.ServiceRequest;
 import com.campushub.structures.graph.Graph;
 import com.campushub.structures.linear.DynamicArray;
+import com.campushub.util.TeamParameters;
 
 // Owner: Graphs and Optimization
 
@@ -33,7 +34,7 @@ public final class KnapsackDP {
     public static final int DEFAULT_SERVICE_MINUTES = 15;
 
     /** Value added per step of urgency, so a high request outranks a small fine. */
-    public static final double URGENCY_VALUE = 20.0;
+    public static final double URGENCY_VALUE = TeamParameters.urgencyValue();
 
     /** Outcome of one solve. */
     public static final class Result {

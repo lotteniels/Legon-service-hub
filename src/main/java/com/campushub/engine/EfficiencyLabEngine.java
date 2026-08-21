@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Random;
+import com.campushub.util.TeamParameters;
 
 /**
  * Empirical efficiency benchmarks (M10).
@@ -54,7 +55,7 @@ public class EfficiencyLabEngine {
     private final SelectionSort selectionSort = new SelectionSort();
     private final LinearSearch linearSearch   = new LinearSearch();
     private final BinarySearch binarySearch   = new BinarySearch();
-    private final Random random               = new Random(42);
+    private final Random random               = new Random(TeamParameters.randomSeed());
 
     /** Graph loaded once and reused for all graph experiments. */
     private Graph graph;
