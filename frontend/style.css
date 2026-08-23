@@ -320,13 +320,13 @@ body::before {
   height: 18px;
 }
 
-.icon-green  { background: rgba(37,99,235,0.15); }
-.icon-blue   { background: rgba(88,166,255,0.12); }
-.icon-gold   { background: rgba(212,160,23,0.15); color: var(--gold); }
-.icon-orange { background: rgba(227,179,65,0.12); }
-.icon-purple { background: rgba(188,140,255,0.12); }
-.icon-red    { background: rgba(248,81,73,0.12); }
-.icon-teal   { background: rgba(45,212,191,0.12); color: var(--teal); }
+.icon-green  { background: rgba(37,99,235,0.15);  color: var(--primary); }
+.icon-blue   { background: rgba(88,166,255,0.12);  color: var(--primary-bright); }
+.icon-gold   { background: rgba(212,160,23,0.15);  color: var(--gold); }
+.icon-orange { background: rgba(227,179,65,0.12);  color: var(--orange); }
+.icon-purple { background: rgba(188,140,255,0.12); color: var(--purple); }
+.icon-red    { background: rgba(248,81,73,0.12);   color: var(--red); }
+.icon-teal   { background: rgba(45,212,191,0.12);  color: var(--teal); }
 
 .card-title {
   font-size: 16px;
@@ -355,7 +355,8 @@ body::before {
 
 .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
 
-label {
+.form-group label,
+.form-row label {
   display: block;
   font-size: 12px;
   font-weight: 500;

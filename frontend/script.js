@@ -49,7 +49,6 @@ function showRawResult(prefix, data, isError, elapsed) {
 
   if (!box) return;
   box.classList.add('visible');
-  box.style.display = 'block';
   box.classList.toggle('error', !!isError);
 
   if (label) label.textContent = isError ? '⚠ Error' : '✓ Response';
@@ -207,7 +206,7 @@ async function loadDashboardData() {
 async function quickDispatchNextJob() {
   const box = document.getElementById('quickDispatchResult');
   const body = document.getElementById('quickDispatchResultBody');
-  if (box) box.style.display = 'block';
+  if (box) box.classList.add('visible');
   if (body) body.textContent = 'Calling GET /api/schedule?mode=priority...';
 
   setLoading('btnQuickDispatch', true);
@@ -233,8 +232,11 @@ async function quickDispatchNextJob() {
 }
 
 async function loadAuditFeed() {
+  const box  = document.getElementById('auditFeedResult');
   const body = document.getElementById('auditFeedBody');
   if (!body) return;
+
+  if (box) box.classList.add('visible');
 
   try {
     const res = await fetch(getBaseUrl() + '/api/audit');
@@ -295,7 +297,7 @@ async function runRouteBFS() {
 
   const t0 = performance.now();
   try {
-    let res = await fetch(getBaseUrl() + `/api/bfs?start=${from}`);
+    let res = await fetch(getBaseUrl() + `/api/bfs?from=${from}`);
     if (!res.ok) {
       res = await fetch(getBaseUrl() + `/graph/reachable?sourceId=${from}&algorithm=bfs`);
     }
@@ -316,7 +318,7 @@ async function runRouteDFS() {
 
   const t0 = performance.now();
   try {
-    let res = await fetch(getBaseUrl() + `/api/dfs?start=${from}`);
+    let res = await fetch(getBaseUrl() + `/api/dfs?from=${from}`);
     if (!res.ok) {
       res = await fetch(getBaseUrl() + `/graph/reachable?sourceId=${from}&algorithm=dfs`);
     }
